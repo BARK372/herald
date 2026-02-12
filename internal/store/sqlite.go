@@ -90,11 +90,11 @@ func (s *SQLiteStore) Close() error {
 // --- Tasks ---
 
 func (s *SQLiteStore) CreateTask(t *TaskRecord) error {
-	_, err := s.db.Exec(`INSERT INTO tasks (id, project, prompt, status, priority, session_id, pid,
+	_, err := s.db.Exec(`INSERT INTO tasks (id, type, project, prompt, status, priority, session_id, pid,
 		git_branch, output, progress, error, cost_usd, turns, timeout_minutes, dry_run,
 		created_at, started_at, completed_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		t.ID, t.Project, t.Prompt, t.Status, t.Priority, t.SessionID, t.PID,
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		t.ID, t.Type, t.Project, t.Prompt, t.Status, t.Priority, t.SessionID, t.PID,
 		t.GitBranch, t.Output, t.Progress, t.Error, t.CostUSD, t.Turns,
 		t.TimeoutMinutes, boolToInt(t.DryRun),
 		formatTime(t.CreatedAt), formatTime(t.StartedAt), formatTime(t.CompletedAt))
@@ -105,7 +105,7 @@ func (s *SQLiteStore) CreateTask(t *TaskRecord) error {
 }
 
 func (s *SQLiteStore) GetTask(id string) (*TaskRecord, error) {
-	row := s.db.QueryRow(`SELECT id, project, prompt, status, priority, session_id, pid,
+	row := s.db.QueryRow(`SELECT id, type, project, prompt, status, priority, session_id, pid,
 		git_branch, output, progress, error, cost_usd, turns, timeout_minutes, dry_run,
 		created_at, started_at, completed_at
 		FROM tasks WHERE id = ?`, id)
@@ -114,12 +114,12 @@ func (s *SQLiteStore) GetTask(id string) (*TaskRecord, error) {
 
 func (s *SQLiteStore) UpdateTask(t *TaskRecord) error {
 	_, err := s.db.Exec(`UPDATE tasks SET
-		status = ?, priority = ?, session_id = ?, pid = ?,
+		type = ?, status = ?, priority = ?, session_id = ?, pid = ?,
 		git_branch = ?, output = ?, progress = ?, error = ?,
 		cost_usd = ?, turns = ?, timeout_minutes = ?, dry_run = ?,
 		started_at = ?, completed_at = ?
 		WHERE id = ?`,
-		t.Status, t.Priority, t.SessionID, t.PID,
+		t.Type, t.Status, t.Priority, t.SessionID, t.PID,
 		t.GitBranch, t.Output, t.Progress, t.Error,
 		t.CostUSD, t.Turns, t.TimeoutMinutes, boolToInt(t.DryRun),
 		formatTime(t.StartedAt), formatTime(t.CompletedAt),
@@ -131,7 +131,7 @@ func (s *SQLiteStore) UpdateTask(t *TaskRecord) error {
 }
 
 func (s *SQLiteStore) ListTasks(f TaskFilter) ([]TaskRecord, error) {
-	query := "SELECT id, project, prompt, status, priority, session_id, pid, git_branch, output, progress, error, cost_usd, turns, timeout_minutes, dry_run, created_at, started_at, completed_at FROM tasks WHERE 1=1"
+	query := "SELECT id, type, project, prompt, status, priority, session_id, pid, git_branch, output, progress, error, cost_usd, turns, timeout_minutes, dry_run, created_at, started_at, completed_at FROM tasks WHERE 1=1"
 	var args []interface{}
 
 	if f.Status != "" && f.Status != "all" {
@@ -169,6 +169,15 @@ func (s *SQLiteStore) ListTasks(f TaskFilter) ([]TaskRecord, error) {
 		tasks = append(tasks, *t)
 	}
 	return tasks, rows.Err()
+}
+
+func (s *SQLiteStore) GetLinkedTaskBySessionID(sessionID string) (*TaskRecord, error) {
+	row := s.db.QueryRow(`SELECT id, type, project, prompt, status, priority, session_id, pid,
+		git_branch, output, progress, error, cost_usd, turns, timeout_minutes, dry_run,
+		created_at, started_at, completed_at
+		FROM tasks WHERE session_id = ? AND status = 'linked'
+		ORDER BY created_at DESC LIMIT 1`, sessionID)
+	return scanTask(row)
 }
 
 // --- Task Events ---
@@ -318,7 +327,7 @@ func scanTask(row *sql.Row) (*TaskRecord, error) {
 	var dryRun int
 	var createdAt, startedAt, completedAt string
 
-	err := row.Scan(&t.ID, &t.Project, &t.Prompt, &t.Status, &t.Priority,
+	err := row.Scan(&t.ID, &t.Type, &t.Project, &t.Prompt, &t.Status, &t.Priority,
 		&t.SessionID, &t.PID, &t.GitBranch, &t.Output, &t.Progress, &t.Error,
 		&t.CostUSD, &t.Turns, &t.TimeoutMinutes, &dryRun,
 		&createdAt, &startedAt, &completedAt)
@@ -339,7 +348,7 @@ func scanTaskRows(rows *sql.Rows) (*TaskRecord, error) {
 	var dryRun int
 	var createdAt, startedAt, completedAt string
 
-	err := rows.Scan(&t.ID, &t.Project, &t.Prompt, &t.Status, &t.Priority,
+	err := rows.Scan(&t.ID, &t.Type, &t.Project, &t.Prompt, &t.Status, &t.Priority,
 		&t.SessionID, &t.PID, &t.GitBranch, &t.Output, &t.Progress, &t.Error,
 		&t.CostUSD, &t.Turns, &t.TimeoutMinutes, &dryRun,
 		&createdAt, &startedAt, &completedAt)

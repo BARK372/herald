@@ -73,6 +73,32 @@ func CheckTask(tm *task.Manager) server.ToolHandlerFunc {
 		case task.StatusCancelled:
 			fmt.Fprintf(&b, "Status: cancelled\n")
 			fmt.Fprintf(&b, "Duration: %s\n", snap.FormatDuration())
+
+		case task.StatusLinked:
+			fmt.Fprintf(&b, "Status: linked (external Claude Code session)\n")
+			fmt.Fprintf(&b, "Session ID: %s\n", snap.SessionID)
+			if snap.Project != "" {
+				fmt.Fprintf(&b, "Project: %s\n", snap.Project)
+			}
+			if snap.GitBranch != "" {
+				fmt.Fprintf(&b, "Branch: %s\n", snap.GitBranch)
+			}
+			if snap.Output != "" {
+				fmt.Fprintf(&b, "\nSummary:\n%s\n", snap.Output)
+			}
+			if snap.Progress != "" {
+				fmt.Fprintf(&b, "\nCurrent task: %s\n", snap.Progress)
+			}
+			if len(snap.FilesModified) > 0 {
+				fmt.Fprintf(&b, "\nFiles modified (%d):\n", len(snap.FilesModified))
+				for _, f := range snap.FilesModified {
+					fmt.Fprintf(&b, "  - %s\n", f)
+				}
+			}
+			if snap.Turns > 0 {
+				fmt.Fprintf(&b, "Turns: %d\n", snap.Turns)
+			}
+			fmt.Fprintf(&b, "\nUse start_task with session_id %q to resume this session.", snap.SessionID)
 		}
 
 		if includeOutput && snap.Output != "" {

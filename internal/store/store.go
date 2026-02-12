@@ -12,6 +12,7 @@ type Store interface {
 	GetTask(id string) (*TaskRecord, error)
 	UpdateTask(t *TaskRecord) error
 	ListTasks(f TaskFilter) ([]TaskRecord, error)
+	GetLinkedTaskBySessionID(sessionID string) (*TaskRecord, error)
 
 	// Task events
 	AddEvent(e *TaskEvent) error
@@ -34,6 +35,7 @@ type Store interface {
 // TaskRecord represents a persisted task.
 type TaskRecord struct {
 	ID             string
+	Type           string
 	Project        string
 	Prompt         string
 	Status         string

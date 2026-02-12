@@ -7,6 +7,14 @@ import (
 	"time"
 )
 
+// Type distinguishes how a task was created.
+type Type string
+
+const (
+	TypeDispatched Type = "dispatched" // launched via Chat → Herald → Code
+	TypeLinked     Type = "linked"     // pushed from Code → Herald
+)
+
 // Status represents the lifecycle state of a task.
 type Status string
 
@@ -17,6 +25,7 @@ const (
 	StatusCompleted Status = "completed"
 	StatusFailed    Status = "failed"
 	StatusCancelled Status = "cancelled"
+	StatusLinked    Status = "linked" // external session registered, not managed by Herald
 )
 
 // Priority determines task ordering in the execution queue.
@@ -50,6 +59,7 @@ type Task struct {
 	mu sync.RWMutex
 
 	ID        string
+	Type      Type
 	Project   string
 	Prompt    string
 	Status    Status
@@ -100,6 +110,7 @@ func New(project, prompt string, priority Priority, timeoutMinutes, maxOutputSiz
 
 	return &Task{
 		ID:             GenerateID(),
+		Type:           TypeDispatched,
 		Project:        project,
 		Prompt:         prompt,
 		Status:         StatusPending,
@@ -111,6 +122,27 @@ func New(project, prompt string, priority Priority, timeoutMinutes, maxOutputSiz
 	}
 }
 
+// NewLinked creates a linked task from an external Claude Code session.
+// The task starts in StatusLinked and is not meant for execution by Herald.
+func NewLinked(sessionID, project, summary, currentTask, gitBranch string, turns int, filesModified []string) *Task {
+	t := &Task{
+		ID:            GenerateID(),
+		Type:          TypeLinked,
+		Status:        StatusLinked,
+		SessionID:     sessionID,
+		Project:       project,
+		GitBranch:     gitBranch,
+		Progress:      currentTask,
+		Turns:         turns,
+		FilesModified: filesModified,
+		CreatedAt:     time.Now(),
+		done:          make(chan struct{}),
+	}
+	t.output = []byte(summary)
+	t.outputTotal = len(summary)
+	return t
+}
+
 // Done returns a channel that is closed when the task reaches a terminal state.
 func (t *Task) Done() <-chan struct{} {
 	return t.done
@@ -120,7 +152,7 @@ func (t *Task) Done() <-chan struct{} {
 func (t *Task) IsTerminal() bool {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
-	return t.Status == StatusCompleted || t.Status == StatusFailed || t.Status == StatusCancelled
+	return t.Status == StatusCompleted || t.Status == StatusFailed || t.Status == StatusCancelled || t.Status == StatusLinked
 }
 
 // SetStatus updates the task status and timestamps.
@@ -140,6 +172,25 @@ func (t *Task) SetStatus(s Status) {
 			close(t.done)
 		}
 	}
+}
+
+// SetOutput replaces the output buffer contents.
+func (t *Task) SetOutput(text string) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	t.output = []byte(text)
+	t.outputTotal = len(text)
+}
+
+// SetLinkedFields updates mutable fields on a linked task.
+func (t *Task) SetLinkedFields(project, gitBranch, progress string, turns int, filesModified []string) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	t.Project = project
+	t.GitBranch = gitBranch
+	t.Progress = progress
+	t.Turns = turns
+	t.FilesModified = filesModified
 }
 
 // SetProgress updates the last progress message.
@@ -222,6 +273,7 @@ func (t *Task) Snapshot() TaskSnapshot {
 
 	return TaskSnapshot{
 		ID:             t.ID,
+		Type:           t.Type,
 		Project:        t.Project,
 		Prompt:         t.Prompt,
 		Status:         t.Status,
@@ -247,6 +299,7 @@ func (t *Task) Snapshot() TaskSnapshot {
 // TaskSnapshot is a read-only copy of a Task's state at a point in time.
 type TaskSnapshot struct {
 	ID             string
+	Type           Type
 	Project        string
 	Prompt         string
 	Status         Status

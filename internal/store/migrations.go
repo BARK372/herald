@@ -67,4 +67,8 @@ var migrations = []string{
 		used INTEGER NOT NULL DEFAULT 0,
 		created_at TEXT NOT NULL DEFAULT (datetime('now'))
 	);`,
+
+	// Migration 2: Add type column to tasks for herald_push (linked tasks)
+	`ALTER TABLE tasks ADD COLUMN type TEXT NOT NULL DEFAULT 'dispatched';
+	CREATE INDEX IF NOT EXISTS idx_tasks_session_id ON tasks(session_id);`,
 }
