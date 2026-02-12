@@ -3,15 +3,17 @@ package mcp
 import (
 	"github.com/mark3labs/mcp-go/server"
 
+	"github.com/kolapsis/herald/internal/config"
 	"github.com/kolapsis/herald/internal/project"
 	"github.com/kolapsis/herald/internal/task"
 )
 
 // Deps holds shared dependencies injected into MCP handlers.
 type Deps struct {
-	Projects *project.Manager
-	Tasks    *task.Manager
-	Version  string
+	Projects  *project.Manager
+	Tasks     *task.Manager
+	Execution config.ExecutionConfig
+	Version   string
 }
 
 // NewServer creates and configures the MCP server with all tools registered.

@@ -17,18 +17,23 @@ type Manager struct {
 
 	executor      executor.Executor
 	maxConcurrent int
+	maxTimeout    time.Duration
 	cancelFuncs   map[string]context.CancelFunc
 }
 
 // NewManager creates a new task Manager.
-func NewManager(exec executor.Executor, maxConcurrent int) *Manager {
+func NewManager(exec executor.Executor, maxConcurrent int, maxTimeout time.Duration) *Manager {
 	if maxConcurrent < 1 {
 		maxConcurrent = 3
+	}
+	if maxTimeout <= 0 {
+		maxTimeout = 2 * time.Hour
 	}
 	return &Manager{
 		tasks:         make(map[string]*Task),
 		executor:      exec,
 		maxConcurrent: maxConcurrent,
+		maxTimeout:    maxTimeout,
 		cancelFuncs:   make(map[string]context.CancelFunc),
 	}
 }
@@ -134,6 +139,13 @@ func (m *Manager) Start(_ context.Context, t *Task, req executor.Request, maxPer
 	}
 
 	timeout := time.Duration(t.TimeoutMinutes) * time.Minute
+	if timeout > m.maxTimeout {
+		slog.Warn("task timeout clamped to max",
+			"task_id", t.ID,
+			"requested", timeout,
+			"max", m.maxTimeout)
+		timeout = m.maxTimeout
+	}
 	taskCtx, cancel := context.WithTimeout(context.Background(), timeout)
 
 	m.mu.Lock()

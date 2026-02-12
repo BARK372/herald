@@ -52,7 +52,7 @@ func (m *mockExecutor) Execute(ctx context.Context, req executor.Request, onProg
 func TestManager_Create_ReturnsTask(t *testing.T) {
 	t.Parallel()
 
-	m := NewManager(&mockExecutor{}, 3)
+	m := NewManager(&mockExecutor{}, 3, 2*time.Hour)
 
 	task := m.Create("proj", "do something", PriorityNormal, 30)
 
@@ -64,7 +64,7 @@ func TestManager_Create_ReturnsTask(t *testing.T) {
 func TestManager_Get_ReturnsTask(t *testing.T) {
 	t.Parallel()
 
-	m := NewManager(&mockExecutor{}, 3)
+	m := NewManager(&mockExecutor{}, 3, 2*time.Hour)
 	created := m.Create("proj", "do something", PriorityNormal, 30)
 
 	found, err := m.Get(created.ID)
@@ -75,7 +75,7 @@ func TestManager_Get_ReturnsTask(t *testing.T) {
 func TestManager_Get_ReturnsErrorForUnknown(t *testing.T) {
 	t.Parallel()
 
-	m := NewManager(&mockExecutor{}, 3)
+	m := NewManager(&mockExecutor{}, 3, 2*time.Hour)
 
 	_, err := m.Get("herald-nonexist")
 	require.Error(t, err)
@@ -91,7 +91,7 @@ func TestManager_StartAndComplete(t *testing.T) {
 		cost:   0.25,
 		turns:  3,
 	}
-	m := NewManager(mock, 3)
+	m := NewManager(mock, 3, 2*time.Hour)
 	ctx := context.Background()
 
 	task := m.Create("proj", "fix bug", PriorityNormal, 30)
@@ -123,7 +123,7 @@ func TestManager_StartAndFail(t *testing.T) {
 		delay: 10 * time.Millisecond,
 		err:   fmt.Errorf("claude exited with code 1"),
 	}
-	m := NewManager(mock, 3)
+	m := NewManager(mock, 3, 2*time.Hour)
 	ctx := context.Background()
 
 	task := m.Create("proj", "bad task", PriorityNormal, 30)
@@ -146,7 +146,7 @@ func TestManager_Cancel(t *testing.T) {
 	mock := &mockExecutor{
 		delay: 10 * time.Second,
 	}
-	m := NewManager(mock, 3)
+	m := NewManager(mock, 3, 2*time.Hour)
 	ctx := context.Background()
 
 	task := m.Create("proj", "long task", PriorityNormal, 30)
@@ -174,7 +174,7 @@ func TestManager_Cancel_ErrorOnTerminalTask(t *testing.T) {
 	t.Parallel()
 
 	mock := &mockExecutor{delay: 10 * time.Millisecond}
-	m := NewManager(mock, 3)
+	m := NewManager(mock, 3, 2*time.Hour)
 	ctx := context.Background()
 
 	task := m.Create("proj", "quick", PriorityNormal, 30)
@@ -189,7 +189,7 @@ func TestManager_Cancel_ErrorOnTerminalTask(t *testing.T) {
 func TestManager_List_FiltersbyStatus(t *testing.T) {
 	t.Parallel()
 
-	m := NewManager(&mockExecutor{}, 3)
+	m := NewManager(&mockExecutor{}, 3, 2*time.Hour)
 	t1 := m.Create("proj", "one", PriorityNormal, 30)
 	t2 := m.Create("proj", "two", PriorityNormal, 30)
 	t1.SetStatus(StatusCompleted)
@@ -206,7 +206,7 @@ func TestManager_List_FiltersbyStatus(t *testing.T) {
 func TestManager_List_FiltersByProject(t *testing.T) {
 	t.Parallel()
 
-	m := NewManager(&mockExecutor{}, 3)
+	m := NewManager(&mockExecutor{}, 3, 2*time.Hour)
 	m.Create("alpha", "task1", PriorityNormal, 30)
 	m.Create("beta", "task2", PriorityNormal, 30)
 	m.Create("alpha", "task3", PriorityNormal, 30)
@@ -218,7 +218,7 @@ func TestManager_List_FiltersByProject(t *testing.T) {
 func TestManager_List_RespectsLimit(t *testing.T) {
 	t.Parallel()
 
-	m := NewManager(&mockExecutor{}, 3)
+	m := NewManager(&mockExecutor{}, 3, 2*time.Hour)
 	for range 5 {
 		m.Create("proj", "task", PriorityNormal, 30)
 	}
@@ -231,7 +231,7 @@ func TestManager_RunningCount(t *testing.T) {
 	t.Parallel()
 
 	mock := &mockExecutor{delay: 5 * time.Second}
-	m := NewManager(mock, 3)
+	m := NewManager(mock, 3, 2*time.Hour)
 	ctx := context.Background()
 
 	assert.Equal(t, 0, m.RunningCount())
@@ -252,7 +252,7 @@ func TestManager_Start_WhenGlobalLimitReached_ReturnsError(t *testing.T) {
 	t.Parallel()
 
 	mock := &mockExecutor{delay: 10 * time.Second}
-	m := NewManager(mock, 2) // global limit = 2
+	m := NewManager(mock, 2, 2*time.Hour) // global limit = 2
 	ctx := context.Background()
 
 	// Start 2 tasks (at limit)
@@ -283,7 +283,7 @@ func TestManager_Start_WhenProjectLimitReached_ReturnsError(t *testing.T) {
 	t.Parallel()
 
 	mock := &mockExecutor{delay: 10 * time.Second}
-	m := NewManager(mock, 10) // high global limit
+	m := NewManager(mock, 10, 2*time.Hour) // high global limit
 	ctx := context.Background()
 
 	// Start 1 task on "alpha" (per-project limit will be 1)
@@ -314,7 +314,7 @@ func TestManager_Start_WhenTaskCompletes_FreesSlot(t *testing.T) {
 	t.Parallel()
 
 	mock := &mockExecutor{delay: 50 * time.Millisecond}
-	m := NewManager(mock, 1) // global limit = 1
+	m := NewManager(mock, 1, 2*time.Hour) // global limit = 1
 	ctx := context.Background()
 
 	// Start and wait for completion

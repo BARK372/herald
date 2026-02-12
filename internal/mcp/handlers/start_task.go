@@ -3,7 +3,9 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
+	"time"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
@@ -14,7 +16,17 @@ import (
 )
 
 // StartTask returns a handler that creates and starts a Claude Code task.
-func StartTask(tm *task.Manager, pm *project.Manager) server.ToolHandlerFunc {
+// defaultTimeout and maxTimeout are expressed as time.Duration.
+func StartTask(tm *task.Manager, pm *project.Manager, defaultTimeout, maxTimeout time.Duration) server.ToolHandlerFunc {
+	defaultMinutes := int(defaultTimeout.Minutes())
+	if defaultMinutes <= 0 {
+		defaultMinutes = 30
+	}
+	maxMinutes := int(maxTimeout.Minutes())
+	if maxMinutes <= 0 {
+		maxMinutes = 120
+	}
+
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		args := req.GetArguments()
 
@@ -34,9 +46,15 @@ func StartTask(tm *task.Manager, pm *project.Manager) server.ToolHandlerFunc {
 			priority = task.Priority(p)
 		}
 
-		timeoutMinutes := 30
+		timeoutMinutes := defaultMinutes
 		if t, ok := args["timeout_minutes"].(float64); ok && t > 0 {
 			timeoutMinutes = int(t)
+		}
+		if timeoutMinutes > maxMinutes {
+			slog.Warn("timeout clamped to max",
+				"requested", timeoutMinutes,
+				"max", maxMinutes)
+			timeoutMinutes = maxMinutes
 		}
 
 		sessionID, _ := args["session_id"].(string)
