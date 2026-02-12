@@ -12,7 +12,7 @@ Claude Chat (mobile/web)
     ├── Task Manager (goroutine pool, priority queue)
     ├── Claude Code Executor (os/exec, stream-json parsing)
     ├── SQLite (persistence)
-    └── Notification Hub (ntfy, webhooks)
+    └── MCP Notifications (server push via SSE)
 
 Claude Code (terminal, reverse flow)
   → herald_push MCP tool
@@ -68,7 +68,7 @@ Each `internal/` package is autonomous and communicates with others through inte
 | **Executor** | `internal/executor` | Spawns Claude Code via `os/exec`, parses stream-json output |
 | **Store** | `internal/store` | SQLite persistence — tasks, tokens, audit log |
 | **Auth** | `internal/auth` | OAuth 2.1 server with PKCE, JWT tokens, token rotation |
-| **Notify** | `internal/notify` | Notification hub — ntfy, webhooks, SSE |
+| **Notify** | `internal/notify` | MCP push notifications (server-initiated via SSE) |
 | **Project** | `internal/project` | Project configuration, validation, Git status |
 | **Dashboard** | `internal/dashboard` | Embedded web UI served via `go:embed` |
 | **API** | `internal/api` | REST API for dashboard and automation |
@@ -128,7 +128,7 @@ Interfaces are defined by their consumers, not their implementors. Small (1-3 me
 8. Worker pool picks up task, spawns Claude Code
 9. Executor streams output, updates progress
 10. On completion, result persisted to SQLite
-11. Notification Hub fires events (ntfy, webhooks)
+11. MCP notifications pushed to Claude Chat via SSE
 ```
 
 ### Claude Code Execution

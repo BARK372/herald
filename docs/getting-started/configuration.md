@@ -91,25 +91,9 @@ execution:
 
 ### Notifications
 
-```yaml
-notifications:
-  ntfy:
-    enabled: false
-    server: "https://ntfy.sh"
-    topic: "herald"
-    # token: "${HERALD_NTFY_TOKEN}"
-    events:
-      - "task.completed"
-      - "task.failed"
+Task lifecycle notifications are pushed directly to Claude Chat via **MCP server notifications** (over the SSE channel). No configuration needed — always enabled.
 
-  # webhooks:
-  #   - name: "n8n"
-  #     url: "https://n8n.example.com/webhook/herald"
-  #     secret: "${HERALD_WEBHOOK_SECRET}"
-  #     events: ["task.completed", "task.failed"]
-```
-
-See [Notifications](../guide/notifications.md) for detailed setup.
+See [Notifications](../guide/notifications.md) for details.
 
 ### Projects
 
@@ -165,7 +149,7 @@ dashboard:
   enabled: true
 ```
 
-Enables the embedded web dashboard at `/dashboard`. Uses SSE for real-time task updates.
+Enables the embedded web dashboard at `/dashboard`.
 
 ## Environment Variable Substitution
 

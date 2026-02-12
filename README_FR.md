@@ -140,9 +140,8 @@ Vous (telephone, apres)    Claude Chat                Herald
 
 ### Operations
 
-- **Notifications push** — Soyez alerte via [ntfy](https://ntfy.sh) ou webhooks quand une tache se termine ou echoue.
+- **Notifications MCP push** — Herald pousse les mises a jour directement vers Claude Chat via les notifications serveur MCP. Pas de polling necessaire.
 - **Persistance SQLite** — Les taches survivent aux redemarrages. Historique complet et consultable.
-- **Dashboard temps reel** — UI web embarquee avec SSE pour le suivi live des taches. *(v0.3)*
 
 ### Ingenierie
 
@@ -235,13 +234,6 @@ execution:
     CLAUDE_CODE_ENTRYPOINT: "herald"
     CLAUDE_CODE_DISABLE_AUTO_UPDATE: "1"
 
-notifications:
-  ntfy:
-    enabled: false
-    server: "https://ntfy.sh"
-    topic: "herald"
-    events: ["task.completed", "task.failed"]
-
 projects:
   my-api:
     path: "/home/vous/projets/my-api"
@@ -316,7 +308,7 @@ Claude Chat (mobile/web)
     |-- Gestionnaire de taches (pool de goroutines, file de priorite)
     |-- Executeur Claude Code (os/exec, parsing stream-json)
     |-- SQLite (persistance)
-    '-- Hub de notifications (ntfy, webhooks)
+    '-- Notifications MCP (push serveur via SSE)
 ```
 
 **Principes** : binaire unique (tout embarque via `go:embed`), async-first (chaque tache est une goroutine), MCP stateless avec backend stateful, fail-safe (un crash de Herald ne tue pas les processus Claude Code en cours).
@@ -380,7 +372,7 @@ services:
 |---|---|---|
 | **v0.1** | :white_check_mark: Termine | Serveur MCP core, taches async, integration Git, OAuth 2.1, SQLite |
 | **v0.2** | :construction: En cours | Memoire partagee — contexte bidirectionnel entre Claude Chat et Claude Code |
-| **v0.3** | :clipboard: Prevu | Dashboard temps reel (UI web embarquee avec SSE) |
+| **v0.3** | :clipboard: Prevu | Dashboard temps reel (UI web embarquee) |
 | **v1.0** | :rocket: Futur | API stable, systeme de plugins |
 
 Une idee ? [Ouvrez une issue](https://github.com/kolapsis/herald/issues). On construit ce dont les utilisateurs ont besoin.

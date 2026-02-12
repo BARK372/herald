@@ -71,7 +71,6 @@ HERALD_CLIENT_SECRET=your-secret-here
 
 # Optional
 HERALD_ADMIN_PASSWORD_HASH=sha256-hash-here
-HERALD_NTFY_TOKEN=ntfy-token
 ```
 
 ## Building the Image
