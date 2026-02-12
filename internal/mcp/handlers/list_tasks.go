@@ -56,6 +56,17 @@ func ListTasks(tm *task.Manager) server.ToolHandlerFunc {
 				sb.WriteString(fmt.Sprintf("  Duration: %s | Cost: $%.2f\n", t.FormatDuration(), t.CostUSD))
 			}
 
+			if t.Status == task.StatusLinked {
+				if t.Output != "" {
+					summary := t.Output
+					if len(summary) > 120 {
+						summary = summary[:120] + "..."
+					}
+					sb.WriteString(fmt.Sprintf("  %q\n", summary))
+				}
+				sb.WriteString(fmt.Sprintf("  Session: %s — use start_task to resume\n", t.SessionID))
+			}
+
 			if t.Error != "" {
 				sb.WriteString(fmt.Sprintf("  Error: %s\n", t.Error))
 			}
@@ -81,6 +92,8 @@ func statusIcon(s task.Status) string {
 		return "❌"
 	case task.StatusCancelled:
 		return "🚫"
+	case task.StatusLinked:
+		return "🔗"
 	default:
 		return "❓"
 	}

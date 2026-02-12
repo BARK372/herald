@@ -90,7 +90,7 @@ func registerTools(s *server.MCPServer, deps *Deps) {
 			mcp.WithDescription("List tasks with optional filters."),
 			mcp.WithString("status",
 				mcp.Description("Filter by status"),
-				mcp.Enum("all", "pending", "running", "completed", "failed", "cancelled"),
+				mcp.Enum("all", "pending", "running", "completed", "failed", "cancelled", "linked"),
 			),
 			mcp.WithString("project",
 				mcp.Description("Filter by project name"),
@@ -153,6 +153,38 @@ func registerTools(s *server.MCPServer, deps *Deps) {
 			),
 		),
 		handlers.ReadFile(deps.Projects),
+	)
+
+	// herald_push — Push Claude Code session context to Herald
+	s.AddTool(
+		mcp.NewTool("herald_push",
+			mcp.WithDescription("Push the current Claude Code session context to Herald for remote monitoring and continuation. Call this when the user wants to continue working from another device."),
+			mcp.WithString("session_id",
+				mcp.Required(),
+				mcp.Description("Current Claude Code session ID"),
+			),
+			mcp.WithString("summary",
+				mcp.Required(),
+				mcp.Description("Summary of what has been done in this session so far"),
+			),
+			mcp.WithString("project",
+				mcp.Description("Project name or working directory path"),
+			),
+			mcp.WithArray("files_modified",
+				mcp.Description("List of files created or modified during the session"),
+				mcp.WithStringItems(),
+			),
+			mcp.WithString("current_task",
+				mcp.Description("What was being worked on (in progress or next step)"),
+			),
+			mcp.WithString("git_branch",
+				mcp.Description("Current git branch"),
+			),
+			mcp.WithNumber("turns",
+				mcp.Description("Number of conversation turns so far"),
+			),
+		),
+		handlers.HeraldPush(deps.Tasks),
 	)
 
 	// get_logs — Get logs and activity history

@@ -61,6 +61,36 @@ func (m *Manager) Create(project, prompt string, priority Priority, timeoutMinut
 	return t
 }
 
+// Register stores a pre-built task in the manager without starting execution.
+// Used for linked tasks pushed from Claude Code via herald_push.
+func (m *Manager) Register(t *Task) {
+	m.mu.Lock()
+	m.tasks[t.ID] = t
+	m.mu.Unlock()
+
+	slog.Info("task registered",
+		"task_id", t.ID,
+		"type", string(t.Type),
+		"project", t.Project)
+}
+
+// GetBySessionID finds a task with the given session ID and status.
+// Returns nil if no matching task is found.
+func (m *Manager) GetBySessionID(sessionID string, status Status) *Task {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	for _, t := range m.tasks {
+		t.mu.RLock()
+		match := t.SessionID == sessionID && t.Status == status
+		t.mu.RUnlock()
+		if match {
+			return t
+		}
+	}
+	return nil
+}
+
 // Get returns a task by ID.
 func (m *Manager) Get(id string) (*Task, error) {
 	m.mu.RLock()
