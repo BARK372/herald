@@ -1,0 +1,37 @@
+# Binaries
+bin/
+herald
+*.exe
+
+# Database
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Work directory
+work/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Air hot reload
+tmp/
+.air.toml
+
+# Test artifacts
+coverage.out
+coverage.html
+
+# Spec & planning docs (not shipped)
+herald-ceo-plan.md
+herald-cto-spec.md
+PLAN.md
