@@ -1,36 +1,72 @@
-# Herald
+<p align="center">
+  <h1 align="center">Herald</h1>
+  <p align="center">
+    <strong>Code from your phone. Seriously.</strong>
+    <br />
+    <em>The self-hosted MCP bridge between Claude Chat and Claude Code.</em>
+  </p>
+</p>
 
-**Bridge Claude Chat to Claude Code. Command your workstation from your phone.**
+<p align="center">
+  <a href="https://go.dev"><img src="https://img.shields.io/badge/Go-1.26+-00ADD8?logo=go&logoColor=white" alt="Go 1.26+"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License"></a>
+  <a href="https://github.com/kolapsis/herald/stargazers"><img src="https://img.shields.io/github/stars/kolapsis/herald?style=social" alt="GitHub Stars"></a>
+</p>
 
-[![Go 1.26+](https://img.shields.io/badge/Go-1.26+-00ADD8?logo=go&logoColor=white)](https://go.dev)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Status: Alpha](https://img.shields.io/badge/Status-Alpha-orange)]()
-
-:fr: [Version française](README_FR.md)
+<p align="center">
+  <a href="#-quick-start">Quick Start</a> &middot;
+  <a href="#-how-it-works">How It Works</a> &middot;
+  <a href="#%EF%B8%8F-features">Features</a> &middot;
+  <a href="#-security">Security</a> &middot;
+  <a href="#-roadmap">Roadmap</a>
+  <br />
+  :fr: <a href="README_FR.md">Version française</a>
+</p>
 
 ---
 
-Claude Chat and Claude Code live in two separate worlds. One runs in your browser and on your phone. The other runs in your terminal and writes actual code. They don't talk to each other.
+You're on the couch. On your phone. You open Claude Chat and type:
 
-Herald fixes that. It's a self-hosted MCP server that connects Claude Chat to Claude Code using Anthropic's official [Custom Connectors](https://docs.anthropic.com/en/docs/claude-code/mcp) protocol. You stay in Claude Chat — Herald dispatches the work to Claude Code running on your machine.
+> *"Refactor the auth middleware in my-api to use JWT instead of session cookies. Run the tests."*
+
+Four minutes later, it's done. Branch created, code refactored, tests passing, changes committed. Your workstation did all the work. You never opened your laptop.
+
+**That's Herald.**
+
+## The Problem
+
+Claude Chat and Claude Code are two brilliant tools that live in completely separate worlds.
+
+| | Claude Chat | Claude Code |
+|---|---|---|
+| **Where** | Browser, phone, anywhere | Your terminal |
+| **What** | Conversations, analysis, thinking | Reads, writes, and ships actual code |
+| **Gap** | Can't touch your codebase | Can't leave your desk |
+
+You've been copy-pasting between them. Or worse — you've been waiting until you're back at your desk. That's over.
+
+## The Solution
+
+Herald is a self-hosted MCP server that bridges Claude Chat to Claude Code using Anthropic's official [Custom Connectors](https://support.claude.com/en/articles/11503834-building-custom-connectors-via-remote-mcp-servers) protocol. One Go binary. Zero hacks.
 
 ```
-  📱 Claude Chat (phone / web)
+  You (phone/tablet/browser)
        │
-       ▼ MCP over HTTPS
-  🖥️  Herald (your workstation)
-       │
-       ▼ spawns & manages
-  ⚡ Claude Code (executes tasks)
+       │  "Add rate limiting to the API"
+       ▼
+  Claude Chat ──── MCP over HTTPS ────► Herald (your workstation)
+                                           │
+                                           ▼
+                                        Claude Code
+                                           ├── reads your codebase
+                                           ├── writes the code
+                                           ├── runs the tests
+                                           └── commits to a branch
 ```
 
-## The Workflow
+Your code never leaves your machine. Herald just orchestrates.
 
-You're on your phone. You open Claude Chat and say:
-
-> "Refactor the auth middleware in my-api to use JWT instead of session cookies."
-
-Here's what happens:
+## How It Works
 
 ```
 You (Claude Chat)          Herald                     Claude Code
@@ -38,7 +74,7 @@ You (Claude Chat)          Herald                     Claude Code
 "Refactor auth..."    ──►  start_task
                            → creates branch
                            → spawns Claude Code  ──►  reads codebase
-                                                      refactors auth
+                                                      refactors code
                                                       runs tests
                                                       commits changes
                       ◄──  task_id: herald-a1b2c3d4
@@ -51,53 +87,55 @@ You (Claude Chat)          Herald                     Claude Code
                       ◄──  auth/middleware.go
                            +func ValidateJWT(...)
                            -func CheckSession(...)
-                           ...
 ```
 
-All from your phone. Your workstation did the heavy lifting.
+Three tools. That's the core loop. Start, check, get results — all from wherever you are.
 
 ## Features
 
-- **Native MCP bridge** — Uses Anthropic's official Custom Connectors. Not a hack, not a wrapper.
-- **Async task execution** — Start tasks, check progress, get results. No long-polling, no timeouts.
-- **Git branch isolation** — Each task gets its own branch. Your main branch stays clean.
-- **Session resumption** — Multi-turn Claude Code conversations. Continue where you left off.
-- **Multi-project support** — Configure multiple projects with per-project security policies.
-- **Per-project allowed tools** — Control exactly which tools Claude Code can use per project.
-- **OAuth 2.1 + PKCE** — Proper auth. Not a shared API key.
-- **SQLite persistence** — Tasks survive server restarts. History is searchable.
-- **Push notifications** — Get notified via [ntfy](https://ntfy.sh) when tasks complete or fail.
-- **Single binary** — One Go binary, ~15MB. No Docker required, no runtime dependencies.
-- **Zero CGO** — Cross-compiles to any platform Go supports.
-- **6 dependencies** — chi, mcp-go, modernc/sqlite, uuid, yaml, testify. That's it.
+### Core
+
+- **Native MCP bridge** — Uses Anthropic's official Custom Connectors protocol. Not a hack, not a wrapper, not a proxy.
+- **Async task execution** — Start tasks, check progress, get results. Claude Code runs in the background while you do other things.
+- **Git branch isolation** — Each task runs on its own branch. Your main branch stays untouched.
+- **Session resumption** — Multi-turn Claude Code conversations. Pick up where you left off.
+
+### Multi-Project
+
+- **Multiple projects** — Configure as many projects as you need, each with its own settings.
+- **Per-project tool restrictions** — Control exactly which tools Claude Code can use. Full sandboxing per project.
+
+### Operations
+
+- **Push notifications** — Get notified via [ntfy](https://ntfy.sh) or webhooks when tasks complete or fail.
+- **SQLite persistence** — Tasks survive server restarts. Full history, fully searchable.
+- **Real-time dashboard** — Embedded web UI with SSE for live task monitoring. *(v0.3)*
+
+### Engineering
+
+- **Single binary** — One Go executable, ~15MB. No Docker, no runtime, no node_modules.
+- **Zero CGO** — Pure Go. Cross-compiles to Linux, macOS, Windows, ARM.
+- **6 dependencies** — chi, mcp-go, modernc/sqlite, uuid, yaml, testify. That's the entire dependency tree.
 
 ## Quick Start
 
-### Prerequisites
-
-- **Go 1.26+**
-- **Claude Code CLI** installed and authenticated (`claude --version`)
-- **Anthropic account** with Custom Connectors access
-- **A domain with HTTPS** (Traefik, Caddy, or any reverse proxy for TLS)
-
-### Build
+**Prerequisites**: Go 1.26+, [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) installed, a domain with HTTPS.
 
 ```bash
+# Build
 git clone https://github.com/kolapsis/herald.git
-cd herald
-make build
-```
+cd herald && make build
 
-This produces `bin/herald` — a statically-linked binary with zero CGO.
-
-### Configure
-
-```bash
+# Configure
 mkdir -p ~/.config/herald
 cp configs/herald.example.yaml ~/.config/herald/herald.yaml
+export HERALD_CLIENT_SECRET="$(openssl rand -hex 32)"
+
+# Run
+./bin/herald serve
 ```
 
-Edit `~/.config/herald/herald.yaml`:
+Edit `~/.config/herald/herald.yaml` with your domain and projects:
 
 ```yaml
 server:
@@ -123,36 +161,18 @@ projects:
       - "Bash(make *)"
     git:
       auto_branch: true
-      auto_stash: true
       branch_prefix: "herald/"
 ```
 
-Set the required secret:
+Then connect from Claude Chat:
 
-```bash
-export HERALD_CLIENT_SECRET="$(openssl rand -hex 32)"
-```
-
-### Run
-
-```bash
-./bin/herald serve
-# herald is ready addr=127.0.0.1:8420
-```
-
-### Connect from Claude Chat
-
-1. Go to **Claude Chat** → **Settings** → **Custom Connectors**
-2. Add a new MCP connector:
-   - **URL**: `https://herald.yourdomain.com/mcp`
-   - **Auth**: OAuth 2.1 (Herald handles the flow)
-3. Claude Chat will discover Herald's 9 tools automatically
-4. Start talking to Claude — it can now dispatch tasks to your machine
-
-## Configuration Reference
+1. **Claude Chat** → **Settings** → **Custom Connectors**
+2. Add connector: `https://herald.yourdomain.com/mcp`
+3. Authenticate via OAuth
+4. Done — Claude Chat now has 9 new tools to control your workstation
 
 <details>
-<summary>Full herald.yaml with all options</summary>
+<summary><strong>Full configuration reference</strong></summary>
 
 ```yaml
 server:
@@ -160,7 +180,6 @@ server:
   port: 8420
   public_url: "https://herald.yourdomain.com"
   log_level: "info"           # debug, info, warn, error
-  # log_file: "/var/log/herald.log"
 
 auth:
   client_id: "herald-claude-chat"
@@ -169,22 +188,16 @@ auth:
   access_token_ttl: 1h
   refresh_token_ttl: 720h    # 30 days
 
-  # API tokens for REST API / curl / automation
-  # api_tokens:
-  #   - name: "local"
-  #     token_hash: "${HERALD_API_TOKEN_HASH}"
-  #     scope: "*"
-
 database:
   path: "~/.config/herald/herald.db"
   retention_days: 90
 
 execution:
-  claude_path: "claude"       # Path to Claude Code binary
+  claude_path: "claude"
   default_timeout: 30m
   max_timeout: 2h
   work_dir: "~/.config/herald/work"
-  max_concurrent: 3           # Max parallel Claude Code instances
+  max_concurrent: 3
   env:
     CLAUDE_CODE_ENTRYPOINT: "herald"
     CLAUDE_CODE_DISABLE_AUTO_UPDATE: "1"
@@ -194,16 +207,7 @@ notifications:
     enabled: false
     server: "https://ntfy.sh"
     topic: "herald"
-    # token: "${HERALD_NTFY_TOKEN}"
-    events:
-      - "task.completed"
-      - "task.failed"
-
-  # webhooks:
-  #   - name: "n8n"
-  #     url: "https://n8n.example.com/webhook/herald"
-  #     secret: "${HERALD_WEBHOOK_SECRET}"
-  #     events: ["task.completed", "task.failed"]
+    events: ["task.completed", "task.failed"]
 
 projects:
   my-api:
@@ -236,72 +240,75 @@ dashboard:
 
 ## MCP Tools
 
-Herald exposes 9 tools through the MCP protocol. Claude Chat discovers and uses them automatically.
+Herald exposes 9 tools that Claude Chat discovers automatically via the MCP protocol:
 
-| Tool | Description |
+| Tool | What it does |
 |---|---|
-| `start_task` | Launch a Claude Code task. Returns a task ID immediately. Supports priority, timeout, dry run, session resumption, and Git branch options. |
-| `check_task` | Check status and progress of a running task. Optionally include recent output lines. |
-| `get_result` | Get the full result of a completed task. Formats: `summary`, `full`, or `json`. |
-| `list_tasks` | List tasks with filters (status, project, time range, limit). |
+| `start_task` | Launch a Claude Code task. Returns an ID immediately. Supports priority, timeout, session resumption, and Git branch options. |
+| `check_task` | Check status and progress. Optionally include recent output. |
+| `get_result` | Get the full result of a completed task (`summary`, `full`, or `json`). |
+| `list_tasks` | List tasks with filters — status, project, time range. |
 | `cancel_task` | Cancel a running or queued task. Optionally revert Git changes. |
-| `get_diff` | Show Git diff for a task's branch or a project's uncommitted changes. |
-| `list_projects` | List configured projects with their Git status and description. |
-| `read_file` | Read a file from a project directory. Path-safe — cannot escape the project root. |
-| `get_logs` | View logs and activity history. Filter by task, level, or count. |
+| `get_diff` | Git diff for a task's branch or uncommitted changes. |
+| `list_projects` | List configured projects with Git status. |
+| `read_file` | Read a file from a project (path-safe — cannot escape project root). |
+| `get_logs` | View logs and activity history. |
+
+## Security
+
+Herald exposes Claude Code to the network. We take that seriously.
+
+| Layer | Protection |
+|---|---|
+| **Network** | Binds to `127.0.0.1` only. Reverse proxy (Traefik/Caddy) handles TLS. |
+| **Auth** | OAuth 2.1 with PKCE. Every request needs a valid Bearer token. |
+| **Tokens** | Access tokens: 1h. Refresh tokens: 30d, rotated on each use. |
+| **Filesystem** | Path traversal protection on all file operations. Symlink escapes blocked. |
+| **Execution** | Per-project tool restrictions. No blanket `--dangerously-skip-permissions`. |
+| **Rate limiting** | 60 req/min per token. Configurable. |
+| **Timeouts** | Every task has a deadline (default: 30min). No runaway processes. |
+| **Prompts** | Passed to Claude Code unmodified. No injection, no enrichment, no rewriting. |
+| **Audit** | Every action logged with timestamp and identity. |
 
 ## Architecture
 
 ```
 Claude Chat (mobile/web)
   → HTTPS (MCP Streamable HTTP + OAuth 2.1)
-  → Traefik / Caddy (reverse proxy, TLS termination)
+  → Traefik / Caddy (TLS termination)
   → Herald (Go binary, port 8420)
     ├── MCP Handler (/mcp)
     ├── OAuth 2.1 Server (PKCE, token rotation)
     ├── Task Manager (goroutine pool, priority queue)
     ├── Claude Code Executor (os/exec, stream-json parsing)
-    ├── SQLite (task persistence, auth tokens)
+    ├── SQLite (persistence)
     └── Notification Hub (ntfy, webhooks)
 ```
 
-### Design Principles
+**Design principles**: single binary (everything embedded via `go:embed`), async-first (each task is a goroutine), stateless MCP with stateful backend, fail-safe (Herald crash doesn't kill running Claude Code processes).
 
-- **Single binary** — Everything embedded. HTML dashboard via `go:embed`. No external runtime.
-- **Async-first** — Each task is a goroutine. Start/check/result polling pattern.
-- **Stateless MCP, stateful backend** — MCP requests are independent. State lives in SQLite + memory.
-- **Fail-safe** — If Herald crashes, running Claude Code processes continue. Results persist on disk.
-
-### Tech Stack
+<details>
+<summary><strong>Tech stack</strong></summary>
 
 | Component | Choice | Why |
 |---|---|---|
 | Language | Go 1.26 | Single binary, cross-compilation, goroutines |
 | MCP | [mcp-go](https://github.com/mark3labs/mcp-go) | Streamable HTTP, official protocol support |
-| HTTP Router | [chi](https://github.com/go-chi/chi) | Lightweight, stdlib-compatible |
-| Database | [modernc.org/sqlite](https://gitlab.com/cznic/sqlite) | Pure Go SQLite, zero CGO |
-| Logging | `log/slog` | Go stdlib, structured, multi-handler |
-| Config | `gopkg.in/yaml.v3` | Standard YAML parsing |
+| Router | [chi](https://github.com/go-chi/chi) | Lightweight, stdlib-compatible |
+| Database | [modernc.org/sqlite](https://gitlab.com/cznic/sqlite) | Pure Go, zero CGO |
+| Logging | `log/slog` | Go stdlib, structured |
+| Config | `gopkg.in/yaml.v3` | Standard YAML |
 
-6 direct dependencies. No ORM, no logging framework, no build toolchain.
+6 direct dependencies. No ORM. No logging framework. No build toolchain.
 
-## Security
+</details>
 
-Herald exposes Claude Code over the network. Security is not optional.
+## Deployment
 
-- **Localhost only** — Herald binds to `127.0.0.1`. A reverse proxy (Traefik, Caddy) handles TLS and external access.
-- **OAuth 2.1 + PKCE** — Every MCP request requires a valid Bearer token. No shared keys.
-- **Short-lived tokens** — Access tokens expire in 1 hour. Refresh tokens rotate on each use.
-- **Path traversal protection** — `read_file` resolves paths and verifies they stay within the project root. Symlink escapes are blocked.
-- **Per-project tool restrictions** — Each project defines exactly which tools Claude Code can use. No blanket permissions.
-- **Rate limiting** — 60 requests/minute per token by default.
-- **Task timeouts** — Every task has a deadline (default 30 min). No infinite processes.
-- **No prompt injection** — Herald passes prompts to Claude Code unmodified. No enrichment, no system prompt injection, no rewriting.
-- **Audit trail** — Every action is logged with timestamp and identity.
+Herald runs best as a native binary (direct access to Claude Code and your files). Docker is available as an option.
 
-## Deployment with Traefik
-
-Herald is designed to sit behind a reverse proxy. Here's a minimal `docker-compose.yml`:
+<details>
+<summary><strong>Docker Compose with Traefik</strong></summary>
 
 ```yaml
 services:
@@ -319,7 +326,7 @@ services:
 
   herald:
     build: .
-    network_mode: host     # Needs access to Claude Code on host
+    network_mode: host
     volumes:
       - "~/.config/herald:/root/.config/herald"
       - "~/projects:/root/projects:ro"
@@ -331,29 +338,60 @@ services:
       - "traefik.http.services.herald.loadbalancer.server.port=8420"
 ```
 
-> **Note**: Running Herald as a native binary (not in Docker) is recommended for the best experience, since it needs direct access to Claude Code and your project files.
+</details>
 
 ## Roadmap
 
 | Version | Status | Focus |
 |---|---|---|
-| **v0.1** | :white_check_mark: Done | Core MCP server, async task execution, Git integration, OAuth 2.1, SQLite persistence |
-| **v0.2** | :arrows_counterclockwise: In progress | Shared memory — bidirectional context between Claude Chat and Claude Code |
+| **v0.1** | :white_check_mark: Done | Core MCP server, async tasks, Git integration, OAuth 2.1, SQLite |
+| **v0.2** | :construction: In progress | Shared memory — bidirectional context between Claude Chat and Claude Code |
 | **v0.3** | :clipboard: Planned | Real-time dashboard (embedded web UI with SSE) |
-| **v1.0** | :rocket: Future | Stable API, managed hosting option, plugin system |
+| **v1.0** | :rocket: Future | Stable API, plugin system |
+
+Have an idea? [Open an issue](https://github.com/kolapsis/herald/issues). We build what users need.
 
 ## Contributing
 
-Herald is in early alpha. Contributions are welcome.
+Herald is in early alpha — the best time to shape a project.
 
-1. Fork the repo
-2. Create a branch (`feat/your-feature` or `fix/your-fix`)
-3. Write tests for non-trivial changes
-4. Run `make lint && make test`
-5. Open a PR
+```bash
+# Get started
+git clone https://github.com/kolapsis/herald.git
+cd herald
+make build && make test
 
-Please follow [Conventional Commits](https://www.conventionalcommits.org/) for commit messages.
+# Create your branch
+git checkout -b feat/your-feature
 
-## License
+# Code, test, lint
+make lint && make test
 
-[MIT](LICENSE) — Kolapsis
+# Open a PR
+```
+
+Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `refactor:`, `docs:`).
+
+Whether it's a bug fix, a new notification backend, or a documentation improvement — all contributions are welcome.
+
+## Why Herald?
+
+| | Herald | Copy-paste workflow | Other tools |
+|---|---|---|---|
+| **Official protocol** | MCP Custom Connectors | N/A | Custom APIs, fragile |
+| **Your code stays local** | Always | Yes | Depends |
+| **Works from phone** | Native | No | Rarely |
+| **Self-hosted** | 100% | N/A | Often SaaS |
+| **Dependencies** | 6 | N/A | 50-200+ |
+| **Setup time** | ~5 minutes | N/A | 30min+ |
+| **CGO required** | No | N/A | Often |
+
+Herald uses the same protocol Anthropic built for their own integrations. No reverse engineering, no unofficial APIs, no hacks that break on the next update.
+
+---
+
+<p align="center">
+  <a href="LICENSE"><strong>MIT License</strong></a> — Built by <a href="https://github.com/kolapsis"><strong>Kolapsis</strong></a>
+  <br /><br />
+  If Herald saves you time, <a href="https://github.com/kolapsis/herald">leave a star</a>. It helps others find the project.
+</p>

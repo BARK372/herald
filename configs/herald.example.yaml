@@ -17,6 +17,10 @@ auth:
   admin_password_hash: "${HERALD_ADMIN_PASSWORD_HASH}"
   access_token_ttl: 1h
   refresh_token_ttl: 720h
+  # Allowed redirect URIs (exact match, no wildcards)
+  redirect_uris:
+    - "https://claude.ai/oauth/callback"
+    - "https://claude.ai/api/oauth/callback"
 
   # API tokens for REST API / curl / automation
   # api_tokens:

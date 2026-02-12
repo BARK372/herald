@@ -28,6 +28,7 @@ type AuthConfig struct {
 	AdminPasswordHash string          `yaml:"admin_password_hash"`
 	AccessTokenTTL    time.Duration   `yaml:"access_token_ttl"`
 	RefreshTokenTTL   time.Duration   `yaml:"refresh_token_ttl"`
+	RedirectURIs      []string        `yaml:"redirect_uris"`
 	APITokens         []APITokenEntry `yaml:"api_tokens"`
 }
 
