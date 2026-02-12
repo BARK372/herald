@@ -3,6 +3,7 @@ package auth
 import (
 	"crypto/rand"
 	"crypto/sha256"
+	"crypto/subtle"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
@@ -18,11 +19,11 @@ import (
 
 // OAuthServer implements OAuth 2.1 with PKCE for Claude Chat Custom Connectors.
 type OAuthServer struct {
-	clientID     string
-	clientSecret string
-	publicURL    string
-	secret       []byte // HMAC signing key derived from client secret
-	redirectURIs []string
+	clientID         string
+	clientSecretHash [sha256.Size]byte // SHA-256 of client secret — never stored in plaintext
+	publicURL        string
+	secret           []byte // HMAC signing key derived from client secret
+	redirectURIs     []string
 
 	accessTTL  time.Duration
 	refreshTTL time.Duration
@@ -49,15 +50,22 @@ func NewOAuthServerWithStore(cfg config.AuthConfig, publicURL string, store Auth
 	}
 
 	return &OAuthServer{
-		clientID:     cfg.ClientID,
-		clientSecret: cfg.ClientSecret,
-		publicURL:    strings.TrimRight(publicURL, "/"),
-		secret:       secret[:],
-		redirectURIs: cfg.RedirectURIs,
-		accessTTL:    accessTTL,
-		refreshTTL:   refreshTTL,
-		store:        store,
+		clientID:         cfg.ClientID,
+		clientSecretHash: sha256.Sum256([]byte(cfg.ClientSecret)),
+		publicURL:        strings.TrimRight(publicURL, "/"),
+		secret:           secret[:],
+		redirectURIs:     cfg.RedirectURIs,
+		accessTTL:        accessTTL,
+		refreshTTL:       refreshTTL,
+		store:            store,
 	}
+}
+
+// verifyClientSecret checks the provided secret against the stored hash using
+// constant-time comparison to prevent timing attacks.
+func (s *OAuthServer) verifyClientSecret(provided string) bool {
+	h := sha256.Sum256([]byte(provided))
+	return subtle.ConstantTimeCompare(h[:], s.clientSecretHash[:]) == 1
 }
 
 // isValidRedirectURI checks the URI against the configured allowlist (exact match).
@@ -211,7 +219,7 @@ func (s *OAuthServer) handleAuthorizationCode(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if clientSecret != s.clientSecret {
+	if !s.verifyClientSecret(clientSecret) {
 		tokenError(w, http.StatusUnauthorized, "invalid_client", "")
 		return
 	}
@@ -252,7 +260,7 @@ func (s *OAuthServer) handleRefreshToken(w http.ResponseWriter, r *http.Request)
 	clientID := r.FormValue("client_id")
 	clientSecret := r.FormValue("client_secret")
 
-	if clientID != s.clientID || clientSecret != s.clientSecret {
+	if clientID != s.clientID || !s.verifyClientSecret(clientSecret) {
 		tokenError(w, http.StatusUnauthorized, "invalid_client", "")
 		return
 	}
@@ -347,11 +355,12 @@ func (s *OAuthServer) issueTokenPair(w http.ResponseWriter, clientID, scope stri
 	})
 }
 
-// verifyPKCE checks that SHA256(code_verifier) == code_challenge.
+// verifyPKCE checks that SHA256(code_verifier) == code_challenge
+// using constant-time comparison to prevent timing attacks.
 func verifyPKCE(codeVerifier, codeChallenge string) bool {
 	h := sha256.Sum256([]byte(codeVerifier))
 	computed := base64.RawURLEncoding.EncodeToString(h[:])
-	return computed == codeChallenge
+	return subtle.ConstantTimeCompare([]byte(computed), []byte(codeChallenge)) == 1
 }
 
 func generateCode() (raw string, hash string) {

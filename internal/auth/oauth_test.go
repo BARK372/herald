@@ -287,6 +287,104 @@ func TestOAuthFlow_RejectsInvalidClient(t *testing.T) {
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
 }
 
+func TestHandleToken_WhenCorrectClientIDButWrongSecret_RejectsRequest(t *testing.T) {
+	t.Parallel()
+
+	oauth := newTestOAuth()
+	pkce := newTestPKCE()
+
+	// Get a valid code first
+	authReq := httptest.NewRequest("GET", "/oauth/authorize?"+url.Values{
+		"response_type":         {"code"},
+		"client_id":             {"test-client"},
+		"redirect_uri":          {testRedirectURI},
+		"code_challenge":        {pkce.Challenge},
+		"code_challenge_method": {"S256"},
+	}.Encode(), nil)
+	authW := httptest.NewRecorder()
+	oauth.HandleAuthorize(authW, authReq)
+
+	redirectURL, _ := url.Parse(authW.Header().Get("Location"))
+	code := redirectURL.Query().Get("code")
+	require.NotEmpty(t, code)
+
+	// Exchange with correct client_id but wrong secret
+	tokenForm := url.Values{
+		"grant_type":    {"authorization_code"},
+		"code":          {code},
+		"client_id":     {"test-client"},
+		"client_secret": {"wrong-secret"},
+		"redirect_uri":  {testRedirectURI},
+		"code_verifier": {pkce.Verifier},
+	}
+	tokenReq := httptest.NewRequest("POST", "/oauth/token", strings.NewReader(tokenForm.Encode()))
+	tokenReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	tokenW := httptest.NewRecorder()
+	oauth.HandleToken(tokenW, tokenReq)
+
+	assert.Equal(t, http.StatusUnauthorized, tokenW.Code)
+
+	var errResp map[string]string
+	require.NoError(t, json.Unmarshal(tokenW.Body.Bytes(), &errResp))
+	assert.Equal(t, "invalid_client", errResp["error"])
+}
+
+func TestHandleRefreshToken_WhenWrongSecret_RejectsRequest(t *testing.T) {
+	t.Parallel()
+
+	oauth := newTestOAuth()
+	pkce := newTestPKCE()
+
+	// Get initial tokens with valid credentials
+	authReq := httptest.NewRequest("GET", "/oauth/authorize?"+url.Values{
+		"response_type":         {"code"},
+		"client_id":             {"test-client"},
+		"redirect_uri":          {testRedirectURI},
+		"code_challenge":        {pkce.Challenge},
+		"code_challenge_method": {"S256"},
+	}.Encode(), nil)
+	authW := httptest.NewRecorder()
+	oauth.HandleAuthorize(authW, authReq)
+
+	redirectURL, _ := url.Parse(authW.Header().Get("Location"))
+	code := redirectURL.Query().Get("code")
+
+	tokenForm := url.Values{
+		"grant_type":    {"authorization_code"},
+		"code":          {code},
+		"client_id":     {"test-client"},
+		"client_secret": {"test-secret"},
+		"redirect_uri":  {testRedirectURI},
+		"code_verifier": {pkce.Verifier},
+	}
+	tokenReq := httptest.NewRequest("POST", "/oauth/token", strings.NewReader(tokenForm.Encode()))
+	tokenReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	tokenW := httptest.NewRecorder()
+	oauth.HandleToken(tokenW, tokenReq)
+
+	var firstResp map[string]interface{}
+	require.NoError(t, json.Unmarshal(tokenW.Body.Bytes(), &firstResp))
+	refreshToken := firstResp["refresh_token"].(string)
+
+	// Try to refresh with wrong secret
+	refreshForm := url.Values{
+		"grant_type":    {"refresh_token"},
+		"refresh_token": {refreshToken},
+		"client_id":     {"test-client"},
+		"client_secret": {"wrong-secret"},
+	}
+	refreshReq := httptest.NewRequest("POST", "/oauth/token", strings.NewReader(refreshForm.Encode()))
+	refreshReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	refreshW := httptest.NewRecorder()
+	oauth.HandleToken(refreshW, refreshReq)
+
+	assert.Equal(t, http.StatusUnauthorized, refreshW.Code)
+
+	var errResp map[string]string
+	require.NoError(t, json.Unmarshal(refreshW.Body.Bytes(), &errResp))
+	assert.Equal(t, "invalid_client", errResp["error"])
+}
+
 func TestOAuthFlow_RejectsCodeReuse(t *testing.T) {
 	oauth := newTestOAuth()
 	pkce := newTestPKCE()
