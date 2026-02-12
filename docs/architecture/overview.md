@@ -13,6 +13,13 @@ Claude Chat (mobile/web)
     ├── Claude Code Executor (os/exec, stream-json parsing)
     ├── SQLite (persistence)
     └── Notification Hub (ntfy, webhooks)
+
+Claude Code (terminal, reverse flow)
+  → herald_push MCP tool
+  → Herald (Go binary, port 8420)
+    ├── Task Manager (creates linked task)
+    └── SQLite (persistence)
+  → Claude Chat can later resume via list_tasks + start_task
 ```
 
 ## Design Principles
@@ -23,7 +30,7 @@ Everything is embedded in one Go executable (~15MB). The dashboard HTML/CSS/JS i
 
 ### Async-First
 
-Every Claude Code task runs in its own goroutine, managed by a bounded worker pool. The MCP protocol follows a start/poll/result pattern — the client starts a task and checks back later.
+Every Claude Code task runs in its own goroutine, managed by a bounded worker pool. The MCP protocol follows a start/poll/result pattern — the client starts a task and checks back later. The bridge is bidirectional: Claude Code can also push sessions to Herald via `herald_push`, creating `linked` tasks for remote continuation.
 
 ### Stateless MCP, Stateful Backend
 

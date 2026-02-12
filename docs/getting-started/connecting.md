@@ -28,7 +28,7 @@ Claude Chat will initiate the OAuth 2.1 flow:
 
 ### 4. Verify the Connection
 
-Once connected, Claude Chat automatically discovers Herald's 9 tools. Test it:
+Once connected, Claude Chat automatically discovers Herald's 10 tools. Test it:
 
 > *"Use list_projects to show my configured projects."*
 
@@ -48,6 +48,7 @@ With Herald connected, Claude Chat gains these capabilities:
 | `get_diff` | *"Show me the diff"* |
 | `list_projects` | *"What projects do I have?"* |
 | `read_file` | *"Show me the main.go file in my-api"* |
+| `herald_push` | *(Called by Claude Code)* — *"Push this session to Herald"* |
 | `get_logs` | *"Show me the logs for that task"* |
 
 !!! tip "Natural language works"
@@ -76,4 +77,4 @@ With Herald connected, Claude Chat gains these capabilities:
 ## What's Next
 
 - [Workflow](../guide/workflow.md) — Learn the start → check → result loop
-- [Tools Reference](../guide/tools-reference.md) — All 9 tools in detail
+- [Tools Reference](../guide/tools-reference.md) — All 10 tools in detail

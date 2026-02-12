@@ -1,6 +1,6 @@
 # Tools Reference
 
-Herald exposes 9 MCP tools that Claude Chat discovers automatically. This page documents every parameter and response format.
+Herald exposes 10 MCP tools that Claude Chat discovers automatically. This page documents every parameter and response format.
 
 ## start_task
 
@@ -97,7 +97,7 @@ List tasks with optional filters.
 
 | Parameter | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `status` | string | No | `"all"` | `"all"`, `"pending"`, `"running"`, `"completed"`, `"failed"`, `"cancelled"` |
+| `status` | string | No | `"all"` | `"all"`, `"pending"`, `"running"`, `"completed"`, `"failed"`, `"cancelled"`, `"linked"` |
 | `project` | string | No | — | Filter by project name |
 | `limit` | number | No | `20` | Maximum tasks to return |
 | `since` | string | No | — | ISO 8601 datetime — only tasks after this time |
@@ -232,6 +232,58 @@ func main() {
 }
 ```
 ````
+
+---
+
+## herald_push
+
+Push the current Claude Code session context to Herald for remote monitoring and continuation from another device. This is the **reverse flow** — instead of Claude Chat dispatching tasks, Claude Code pushes its session to Herald.
+
+If a linked task with the same `session_id` already exists, it is updated instead of creating a duplicate.
+
+### Parameters
+
+| Parameter | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `session_id` | string | **Yes** | — | Current Claude Code session ID |
+| `summary` | string | **Yes** | — | Summary of what has been done in this session so far |
+| `project` | string | No | — | Project name or working directory path |
+| `files_modified` | array | No | — | List of files created or modified during the session |
+| `current_task` | string | No | — | What was being worked on (in progress or next step) |
+| `git_branch` | string | No | — | Current git branch |
+| `turns` | number | No | — | Number of conversation turns so far |
+
+### Example Response (New)
+
+```
+Session pushed to Herald
+
+- Task ID: herald-a1b2c3d4
+- Session: ses_abc123
+- Project: my-api
+- Status: linked
+
+You can now continue this session from Claude Chat:
+  list_tasks to find it
+  check_task for the full summary
+  start_task with session_id "ses_abc123" to resume
+```
+
+### Example Response (Updated)
+
+```
+Session updated in Herald
+
+- Task ID: herald-a1b2c3d4
+- Session: ses_abc123
+- Project: my-api
+- Status: linked
+
+You can now continue this session from Claude Chat:
+  list_tasks to find it
+  check_task for the full summary
+  start_task with session_id "ses_abc123" to resume
+```
 
 ---
 

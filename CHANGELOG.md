@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `herald_push` MCP tool — bidirectional bridge allowing Claude Code to push session context to Herald for remote monitoring and continuation from another device
+- New task type `linked` for sessions pushed from Claude Code via `herald_push`
+- Deduplication: pushing the same `session_id` updates the existing linked task instead of creating a duplicate
+- `list_tasks` shows linked sessions with `linked` status filter
+- SQLite migration: `type` column on tasks table to distinguish regular tasks from linked sessions
+
 ### Security
 
 - **C1**: Validate `redirect_uri` against configured allowlist in OAuth authorization flow — prevents open redirect attacks

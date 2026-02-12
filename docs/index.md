@@ -41,6 +41,7 @@ Your code never leaves your machine. Herald just orchestrates.
 - **Async task execution** — Start tasks, check progress, get results. Claude Code runs in the background while you do other things.
 - **Git branch isolation** — Each task runs on its own branch. Your main branch stays untouched.
 - **Session resumption** — Multi-turn Claude Code conversations. Pick up where you left off.
+- **Bidirectional bridge** — Claude Code can push session context to Herald via `herald_push` for remote continuation.
 
 ### Multi-Project
 
@@ -97,4 +98,4 @@ Then [connect from Claude Chat](getting-started/connecting.md) and start coding 
 - [Configuration](getting-started/configuration.md) — Full `herald.yaml` reference
 - [Connecting](getting-started/connecting.md) — Hook up Claude Chat to Herald
 - [Workflow](guide/workflow.md) — The typical start → check → result loop
-- [Tools Reference](guide/tools-reference.md) — All 9 MCP tools in detail
+- [Tools Reference](guide/tools-reference.md) — All 10 MCP tools in detail

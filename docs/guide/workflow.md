@@ -129,6 +129,8 @@ With `dry_run: true`, Claude Code analyzes and plans but doesn't modify files. U
 pending → queued → running → completed
                            → failed
                            → cancelled
+
+linked (created via herald_push, can be resumed with start_task)
 ```
 
 | Status | Meaning |
@@ -139,8 +141,37 @@ pending → queued → running → completed
 | `completed` | Finished successfully |
 | `failed` | Claude Code encountered an error |
 | `cancelled` | Cancelled by user via `cancel_task` |
+| `linked` | Session pushed from Claude Code via `herald_push` — ready for remote continuation |
+
+## Reverse Flow: Claude Code → Herald
+
+Herald's bridge is **bidirectional**. When working in your terminal with Claude Code, you can push the session to Herald for later continuation from Claude Chat (e.g., from your phone):
+
+### Push from terminal
+
+Claude Code calls `herald_push` with the session context:
+
+```
+You (terminal)             Claude Code                Herald
+──────────────             ───────────                ──────
+"Push to Herald"      ──►  herald_push
+                             → session_id, summary,
+                               files, branch       ──►  linked task created
+```
+
+### Continue from phone
+
+Later, from Claude Chat:
+
+> *"What sessions are waiting for me?"*
+
+`list_tasks` shows linked sessions. Then:
+
+> *"Resume that session"*
+
+Claude Chat calls `start_task` with the `session_id` from the linked task, picking up where Claude Code left off.
 
 ## What's Next
 
-- [Tools Reference](tools-reference.md) — Complete parameter details for all 9 tools
+- [Tools Reference](tools-reference.md) — Complete parameter details for all 10 tools
 - [Multi-Project](multi-project.md) — Working with multiple codebases

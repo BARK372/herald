@@ -64,7 +64,17 @@ Herald is a self-hosted MCP server that bridges Claude Chat to Claude Code using
                                            ├── writes the code
                                            ├── runs the tests
                                            └── commits to a branch
+
+  You (terminal)
+       │
+       │  Claude Code calls herald_push
+       ▼
+  Claude Code ──── MCP ────► Herald ────► Claude Chat picks it up
+                                           └── session context, summary,
+                                               files modified, git branch
 ```
+
+The bridge is **bidirectional**. Claude Chat dispatches tasks to Claude Code, and Claude Code can push session context back to Herald for remote monitoring and continuation from another device.
 
 Your code never leaves your machine. Herald just orchestrates.
 
@@ -93,6 +103,28 @@ You (Claude Chat)          Herald                     Claude Code
 
 Three tools. That's the core loop. Start, check, get results — all from wherever you are.
 
+### Reverse flow: Claude Code → Herald
+
+Working in your terminal and want to continue from your phone? Claude Code pushes its session to Herald:
+
+```
+You (terminal)             Claude Code                Herald
+──────────────             ───────────                ──────
+"Push this to Herald"  ──►  herald_push
+                             → session_id, summary,
+                               files, branch       ──►  linked task created
+                                                         🔗 visible in list_tasks
+
+You (phone, later)         Claude Chat                Herald
+──────────────────         ───────────                ──────
+"What sessions are         list_tasks
+ waiting for me?"     ──►  (status: linked)      ──►  🔗 herald-a1b2c3d4
+                                                         my-api / feat/auth
+
+"Resume that session"  ──► start_task
+                            (session_id)          ──►  picks up where you left off
+```
+
 ## Features
 
 ### Core
@@ -101,6 +133,7 @@ Three tools. That's the core loop. Start, check, get results — all from wherev
 - **Async task execution** — Start tasks, check progress, get results. Claude Code runs in the background while you do other things.
 - **Git branch isolation** — Each task runs on its own branch. Your main branch stays untouched.
 - **Session resumption** — Multi-turn Claude Code conversations. Pick up where you left off.
+- **Bidirectional bridge** — Claude Code can push session context to Herald via `herald_push` for remote monitoring and continuation from another device.
 
 ### Multi-Project
 
@@ -171,7 +204,7 @@ Then connect from Claude Chat:
 1. **Claude Chat** → **Settings** → **Custom Connectors**
 2. Add connector: `https://herald.yourdomain.com/mcp`
 3. Authenticate via OAuth
-4. Done — Claude Chat now has 9 new tools to control your workstation
+4. Done — Claude Chat now has 10 new tools to control your workstation
 
 <details>
 <summary><strong>Full configuration reference</strong></summary>
@@ -244,7 +277,7 @@ dashboard:
 
 ## MCP Tools
 
-Herald exposes 9 tools that Claude Chat discovers automatically via the MCP protocol:
+Herald exposes 10 tools that Claude Chat discovers automatically via the MCP protocol:
 
 | Tool | What it does |
 |---|---|
@@ -256,6 +289,7 @@ Herald exposes 9 tools that Claude Chat discovers automatically via the MCP prot
 | `get_diff` | Git diff for a task's branch or uncommitted changes. |
 | `list_projects` | List configured projects with Git status. |
 | `read_file` | Read a file from a project (path-safe — cannot escape project root). |
+| `herald_push` | Push a Claude Code session to Herald for remote monitoring and continuation from another device. |
 | `get_logs` | View logs and activity history. |
 
 ## Security

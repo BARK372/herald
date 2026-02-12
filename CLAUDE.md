@@ -34,7 +34,7 @@ Herald est un serveur MCP (Model Context Protocol) self-hosted en Go qui connect
 ### Principes fondamentaux
 
 - **Binaire unique** : tout est embarqué dans un seul exécutable Go (~15-20MB). Le dashboard HTML est embedded via `go:embed`. Pas de Docker requis pour tourner.
-- **Async-first** : chaque tâche Claude Code est un goroutine. Le pattern principal est start/check/result (polling côté MCP).
+- **Async-first** : chaque tâche Claude Code est un goroutine. Le pattern principal est start/check/result (polling côté MCP). Les tâches de type `linked` (créées via `herald_push`) représentent des sessions Claude Code poussées depuis le terminal pour continuation à distance.
 - **Stateless MCP, stateful backend** : le serveur MCP traite chaque requête indépendamment. L'état vit dans SQLite + mémoire.
 - **Fail-safe** : si Herald crash, les processus Claude Code en cours continuent. Les résultats sont persistés sur disque.
 - **KISS** : pas de sur-ingénierie. Si une abstraction n'a qu'une seule implémentation probable, ne pas créer d'interface prématurément. Herald est un outil, pas un framework.
@@ -52,6 +52,12 @@ Claude Chat (mobile/web)
     → SQLite (persistence)
     → Notification Hub (ntfy, webhooks, SSE)
   → Dashboard (embedded HTML/JS, /dashboard)
+
+Claude Code (terminal, via herald_push)
+  → Herald Server
+    → Task Manager (creates linked task, type=linked, status=linked)
+    → SQLite (persistence)
+  → Claude Chat can later list_tasks + start_task to resume
 ```
 
 ### Structure du projet
@@ -77,6 +83,7 @@ herald/
 │   │   │   ├── get_diff.go         # Tool: get_diff
 │   │   │   ├── list_projects.go    # Tool: list_projects
 │   │   │   ├── read_file.go        # Tool: read_file
+│   │   │   ├── herald_push.go      # Tool: herald_push (bidirectional bridge)
 │   │   │   └── get_logs.go         # Tool: get_logs
 │   │   └── middleware/
 │   │       └── auth.go             # OAuth token validation middleware
@@ -511,7 +518,7 @@ func GenerateTaskID() string {
 
 ### Outils MCP exposés
 
-Herald expose exactement 9 outils MCP via le endpoint `/mcp` :
+Herald expose exactement 10 outils MCP via le endpoint `/mcp` :
 
 | Outil | Description | Critique |
 |---|---|---|
@@ -523,6 +530,7 @@ Herald expose exactement 9 outils MCP via le endpoint `/mcp` :
 | `get_diff` | Diff Git des changements d'une tâche | |
 | `list_projects` | Projets configurés + état Git | |
 | `read_file` | Lire un fichier d'un projet (path-safe) | ⚠️ Sécurité |
+| `herald_push` | Push session Claude Code vers Herald (pont bidirectionnel) | |
 | `get_logs` | Logs et historique | |
 
 ### Réponses MCP
