@@ -11,55 +11,52 @@ permissions:
 
 jobs:
   test:
-    name: Test (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-latest
-            goos: linux
-            goarch: amd64
-            binary: herald
-          - os: macos-latest
-            goos: darwin
-            goarch: arm64
-            binary: herald
-          - os: windows-latest
-            goos: windows
-            goarch: amd64
-            binary: herald.exe
-
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Go
-        uses: actions/setup-go@v5
+      - uses: actions/setup-go@v5
         with:
-          go-version: "1.26"
+          go-version-file: go.mod
 
-      - name: Run go vet
+      - name: Vet
         run: go vet ./...
 
-      - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v6
+      - name: Test
+        run: go test ./... -race -count=1 -coverprofile=coverage.out
+
+      - name: Coverage summary
+        run: go tool cover -func=coverage.out | tail -1
+
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [linux, darwin]
+        goarch: [amd64, arm64]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
         with:
-          version: latest
+          go-version-file: go.mod
 
-      - name: Run tests
-        run: go test -race -v ./...
-
-      - name: Build binary
+      - name: Build
         env:
-          CGO_ENABLED: "0"
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
-        run: go build -ldflags="-s -w" -o bin/${{ matrix.binary }} ./cmd/herald
+          CGO_ENABLED: 0
+        run: go build -ldflags="-s -w" -o herald-${{ matrix.goos }}-${{ matrix.goarch }} ./cmd/herald
 
-      - name: Upload binary
-        uses: actions/upload-artifact@v4
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
         with:
-          name: herald-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: bin/${{ matrix.binary }}
-          retention-days: 7
+          go-version-file: go.mod
+
+      - uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
