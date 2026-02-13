@@ -35,6 +35,11 @@ func NewSQLiteStore(path string) (*SQLiteStore, error) {
 		_ = f.Close()
 	}
 
+	// Ensure restrictive permissions even if the file already existed with looser perms
+	if err := os.Chmod(path, 0600); err != nil && !os.IsNotExist(err) {
+		return nil, fmt.Errorf("setting database file permissions: %w", err)
+	}
+
 	dsn := path + "?_journal_mode=WAL&_busy_timeout=5000&_foreign_keys=ON"
 	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
