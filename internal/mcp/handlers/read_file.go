@@ -52,7 +52,7 @@ func ReadFile(pm *project.Manager) server.ToolHandlerFunc {
 			return mcp.NewToolResultError(fmt.Sprintf("File too large (%d bytes, max %d)", info.Size(), maxFileSize)), nil
 		}
 
-		content, err := os.ReadFile(safePath)
+		content, err := os.ReadFile(safePath) //nolint:gosec // path validated by safePath above
 		if err != nil {
 			return mcp.NewToolResultError(fmt.Sprintf("Failed to read file: %s", err)), nil
 		}

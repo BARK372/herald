@@ -44,7 +44,7 @@ func TestManager_Validate_RejectsFilePath(t *testing.T) {
 	t.Parallel()
 
 	tmpFile := filepath.Join(t.TempDir(), "notadir")
-	require.NoError(t, os.WriteFile(tmpFile, []byte("x"), 0644))
+	require.NoError(t, os.WriteFile(tmpFile, []byte("x"), 0600))
 
 	pm := NewManager(map[string]config.Project{
 		"bad": {

@@ -85,9 +85,9 @@ func cmdServe(args []string) {
 	printBanner(cfg)
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
-	defer stop()
-
-	if err := run(ctx, cfg); err != nil {
+	err = run(ctx, cfg)
+	stop()
+	if err != nil {
 		slog.Error("server error", "error", err)
 		os.Exit(1)
 	}
@@ -119,10 +119,11 @@ func cmdHealth(args []string) {
 		fmt.Fprintf(os.Stderr, "unhealthy: %v\n", err)
 		os.Exit(1)
 	}
-	defer func() { _ = resp.Body.Close() }()
+	status := resp.StatusCode
+	_ = resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		fmt.Fprintf(os.Stderr, "unhealthy: status %d\n", resp.StatusCode)
+	if status != http.StatusOK {
+		fmt.Fprintf(os.Stderr, "unhealthy: status %d\n", status)
 		os.Exit(1)
 	}
 	fmt.Println("healthy")
@@ -168,7 +169,7 @@ func printBanner(cfg *config.Config) {
 	addr := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
 
 	fmt.Fprintf(os.Stderr, "\n")
-	fmt.Fprintf(os.Stderr, "  Herald %s\n", version)
+	fmt.Fprintf(os.Stderr, "  Herald %s - powered by Benjamin Touchard - https://kolapsis.com\n", version)
 	fmt.Fprintf(os.Stderr, "\n")
 	fmt.Fprintf(os.Stderr, "  Server:          %s\n", addr)
 	if cfg.Server.PublicURL != "" {
@@ -241,7 +242,7 @@ func setupLogging(cfg *config.Config) {
 	}
 
 	if cfg.Server.LogFile != "" {
-		f, err := os.OpenFile(cfg.Server.LogFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0640)
+		f, err := os.OpenFile(cfg.Server.LogFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0600)
 		if err != nil {
 			slog.Warn("failed to open log file, using stdout only", "path", cfg.Server.LogFile, "error", err)
 		} else {

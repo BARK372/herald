@@ -13,7 +13,7 @@ func TestSafePath_AllowsValidPaths(t *testing.T) {
 	t.Parallel()
 
 	root := t.TempDir()
-	require.NoError(t, os.MkdirAll(filepath.Join(root, "src", "pkg"), 0755))
+	require.NoError(t, os.MkdirAll(filepath.Join(root, "src", "pkg"), 0750))
 
 	tests := []struct {
 		name string
@@ -64,7 +64,7 @@ func TestSafePath_RejectsSymlinkEscape(t *testing.T) {
 	root := t.TempDir()
 	// Create a symlink inside the project that points outside
 	outsideDir := t.TempDir()
-	require.NoError(t, os.WriteFile(filepath.Join(outsideDir, "secret.txt"), []byte("secret"), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(outsideDir, "secret.txt"), []byte("secret"), 0600))
 	require.NoError(t, os.Symlink(outsideDir, filepath.Join(root, "escape")))
 
 	_, err := SafePath(root, "escape/secret.txt")
@@ -77,8 +77,8 @@ func TestSafePath_AllowsSymlinkInsideProject(t *testing.T) {
 
 	root := t.TempDir()
 	subdir := filepath.Join(root, "subdir")
-	require.NoError(t, os.MkdirAll(subdir, 0755))
-	require.NoError(t, os.WriteFile(filepath.Join(subdir, "file.txt"), []byte("ok"), 0644))
+	require.NoError(t, os.MkdirAll(subdir, 0750))
+	require.NoError(t, os.WriteFile(filepath.Join(subdir, "file.txt"), []byte("ok"), 0600))
 	// Symlink within the project
 	require.NoError(t, os.Symlink(subdir, filepath.Join(root, "link")))
 

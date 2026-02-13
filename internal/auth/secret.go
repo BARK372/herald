@@ -15,7 +15,7 @@ const secretFileName = "secret"
 func LoadOrCreateSecret(configDir string) (string, error) {
 	path := filepath.Join(configDir, secretFileName)
 
-	data, err := os.ReadFile(path)
+	data, err := os.ReadFile(path) //nolint:gosec // path built from configDir + constant filename
 	if err == nil && len(data) > 0 {
 		return string(data), nil
 	}

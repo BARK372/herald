@@ -28,7 +28,7 @@ func NewSQLiteStore(path string) (*SQLiteStore, error) {
 
 	// Pre-create the file with restrictive permissions if it doesn't exist
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		f, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY, 0600)
+		f, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY, 0600) //nolint:gosec // path from trusted config
 		if err != nil {
 			return nil, fmt.Errorf("creating database file: %w", err)
 		}

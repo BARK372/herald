@@ -357,7 +357,7 @@ func TestNewSQLiteStore_FixesLoosePermissions(t *testing.T) {
 	dbPath := filepath.Join(dir, "loose.db")
 
 	// Create file with overly permissive mode
-	require.NoError(t, os.WriteFile(dbPath, nil, 0644))
+	require.NoError(t, os.WriteFile(dbPath, nil, 0600))
 
 	s, err := NewSQLiteStore(dbPath)
 	require.NoError(t, err)

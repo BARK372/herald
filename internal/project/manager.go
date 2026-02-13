@@ -115,7 +115,7 @@ func (m *Manager) All() []*Project {
 // GitBranch returns the current git branch for a project, or empty string.
 // Uses symbolic-ref which works on unborn branches (no commits yet).
 func (m *Manager) GitBranch(p *Project) string {
-	out, err := exec.Command("git", "-C", p.Path, "symbolic-ref", "--short", "HEAD").Output()
+	out, err := exec.Command("git", "-C", p.Path, "symbolic-ref", "--short", "HEAD").Output() //nolint:gosec // p.Path from trusted config
 	if err != nil {
 		return ""
 	}
@@ -124,7 +124,7 @@ func (m *Manager) GitBranch(p *Project) string {
 
 // GitClean returns whether the project's working tree is clean.
 func (m *Manager) GitClean(p *Project) bool {
-	out, err := exec.Command("git", "-C", p.Path, "status", "--porcelain").Output()
+	out, err := exec.Command("git", "-C", p.Path, "status", "--porcelain").Output() //nolint:gosec // p.Path from trusted config
 	if err != nil {
 		return false
 	}

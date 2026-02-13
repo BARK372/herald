@@ -57,7 +57,7 @@ projects:
 `
 
 	tmpFile := filepath.Join(t.TempDir(), "herald.yaml")
-	require.NoError(t, os.WriteFile(tmpFile, []byte(content), 0644))
+	require.NoError(t, os.WriteFile(tmpFile, []byte(content), 0600))
 
 	cfg, err := LoadFromFile(tmpFile)
 	require.NoError(t, err)
@@ -86,7 +86,7 @@ auth:
   client_secret: "${HERALD_TEST_SECRET}"
 `
 	tmpFile := filepath.Join(t.TempDir(), "herald.yaml")
-	require.NoError(t, os.WriteFile(tmpFile, []byte(content), 0644))
+	require.NoError(t, os.WriteFile(tmpFile, []byte(content), 0600))
 
 	cfg, err := LoadFromFile(tmpFile)
 	require.NoError(t, err)
@@ -103,7 +103,7 @@ server:
   port: 8420
 `
 	tmpFile := filepath.Join(t.TempDir(), "herald.yaml")
-	require.NoError(t, os.WriteFile(tmpFile, []byte(content), 0644))
+	require.NoError(t, os.WriteFile(tmpFile, []byte(content), 0600))
 
 	_, err := LoadFromFile(tmpFile)
 	require.Error(t, err)
@@ -118,7 +118,7 @@ server:
   port: 99999
 `
 	tmpFile := filepath.Join(t.TempDir(), "herald.yaml")
-	require.NoError(t, os.WriteFile(tmpFile, []byte(content), 0644))
+	require.NoError(t, os.WriteFile(tmpFile, []byte(content), 0600))
 
 	_, err := LoadFromFile(tmpFile)
 	require.Error(t, err)
@@ -156,7 +156,7 @@ func TestLoadFromFile_InvalidYAML_ReturnsError(t *testing.T) {
 	t.Parallel()
 
 	tmpFile := filepath.Join(t.TempDir(), "herald.yaml")
-	require.NoError(t, os.WriteFile(tmpFile, []byte("{{invalid yaml:::"), 0644))
+	require.NoError(t, os.WriteFile(tmpFile, []byte("{{invalid yaml:::"), 0600))
 
 	_, err := LoadFromFile(tmpFile)
 	require.Error(t, err)
@@ -171,7 +171,7 @@ execution:
   max_concurrent: 0
 `
 	tmpFile := filepath.Join(t.TempDir(), "herald.yaml")
-	require.NoError(t, os.WriteFile(tmpFile, []byte(content), 0644))
+	require.NoError(t, os.WriteFile(tmpFile, []byte(content), 0600))
 
 	_, err := LoadFromFile(tmpFile)
 	require.Error(t, err)
@@ -186,7 +186,7 @@ server:
   port: 0
 `
 	tmpFile := filepath.Join(t.TempDir(), "herald.yaml")
-	require.NoError(t, os.WriteFile(tmpFile, []byte(content), 0644))
+	require.NoError(t, os.WriteFile(tmpFile, []byte(content), 0600))
 
 	_, err := LoadFromFile(tmpFile)
 	require.Error(t, err)
@@ -207,7 +207,7 @@ auth:
     - "https://other.com/callback"
 `
 	tmpFile := filepath.Join(t.TempDir(), "herald.yaml")
-	require.NoError(t, os.WriteFile(tmpFile, []byte(content), 0644))
+	require.NoError(t, os.WriteFile(tmpFile, []byte(content), 0600))
 
 	cfg, err := LoadFromFile(tmpFile)
 	require.NoError(t, err)
@@ -232,7 +232,7 @@ rate_limit:
   burst: 20
 `
 	tmpFile := filepath.Join(t.TempDir(), "herald.yaml")
-	require.NoError(t, os.WriteFile(tmpFile, []byte(content), 0644))
+	require.NoError(t, os.WriteFile(tmpFile, []byte(content), 0600))
 
 	cfg, err := LoadFromFile(tmpFile)
 	require.NoError(t, err)
@@ -251,7 +251,7 @@ server:
   port: 9999
 `
 	tmpFile := filepath.Join(t.TempDir(), "herald.yaml")
-	require.NoError(t, os.WriteFile(tmpFile, []byte(content), 0644))
+	require.NoError(t, os.WriteFile(tmpFile, []byte(content), 0600))
 
 	cfg, err := LoadFromFile(tmpFile)
 	require.NoError(t, err)

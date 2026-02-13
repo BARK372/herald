@@ -22,7 +22,7 @@ func initTestRepo(t *testing.T) string {
 		{"git", "commit", "--allow-empty", "-m", "initial commit"},
 	}
 	for _, args := range cmds {
-		cmd := exec.Command(args[0], args[1:]...)
+		cmd := exec.Command(args[0], args[1:]...) //nolint:gosec // test helper with hardcoded args
 		cmd.Dir = dir
 		out, err := cmd.CombinedOutput()
 		require.NoError(t, err, "cmd %v failed: %s", args, out)
@@ -56,7 +56,7 @@ func TestOps_IsClean_WhenDirty(t *testing.T) {
 	repo := initTestRepo(t)
 	ops := NewOps(repo)
 
-	require.NoError(t, os.WriteFile(filepath.Join(repo, "dirty.txt"), []byte("change"), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(repo, "dirty.txt"), []byte("change"), 0600))
 
 	clean, err := ops.IsClean(context.Background())
 	require.NoError(t, err)
@@ -97,7 +97,7 @@ func TestOps_Diff_ShowsChanges(t *testing.T) {
 
 	// Create a branch, add a file, commit
 	require.NoError(t, ops.CreateBranch(ctx, "feature"))
-	require.NoError(t, os.WriteFile(filepath.Join(repo, "new.txt"), []byte("content"), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(repo, "new.txt"), []byte("content"), 0600))
 
 	cmd := exec.Command("git", "add", "new.txt")
 	cmd.Dir = repo
@@ -160,7 +160,7 @@ func TestOps_Diff_WhenUncommittedChanges(t *testing.T) {
 	ctx := context.Background()
 
 	// Create and commit a file
-	require.NoError(t, os.WriteFile(filepath.Join(repo, "file.txt"), []byte("initial"), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(repo, "file.txt"), []byte("initial"), 0600))
 	cmd := exec.Command("git", "add", "file.txt")
 	cmd.Dir = repo
 	require.NoError(t, cmd.Run())
@@ -169,7 +169,7 @@ func TestOps_Diff_WhenUncommittedChanges(t *testing.T) {
 	require.NoError(t, cmd.Run())
 
 	// Modify the file (uncommitted)
-	require.NoError(t, os.WriteFile(filepath.Join(repo, "file.txt"), []byte("modified"), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(repo, "file.txt"), []byte("modified"), 0600))
 
 	diff, err := ops.Diff(ctx, "HEAD", "")
 	require.NoError(t, err)
@@ -187,7 +187,7 @@ func TestOps_DiffStat(t *testing.T) {
 	require.NoError(t, err)
 
 	require.NoError(t, ops.CreateBranch(ctx, "stats-test"))
-	require.NoError(t, os.WriteFile(filepath.Join(repo, "stat.txt"), []byte("data"), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(repo, "stat.txt"), []byte("data"), 0600))
 	cmd := exec.Command("git", "add", "stat.txt")
 	cmd.Dir = repo
 	require.NoError(t, cmd.Run())
@@ -238,7 +238,7 @@ func TestOps_StashAndPop(t *testing.T) {
 	ctx := context.Background()
 
 	// Create a dirty file
-	require.NoError(t, os.WriteFile(filepath.Join(repo, "stash-me.txt"), []byte("data"), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(repo, "stash-me.txt"), []byte("data"), 0600))
 
 	cmd := exec.Command("git", "add", "stash-me.txt")
 	cmd.Dir = repo

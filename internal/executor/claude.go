@@ -48,7 +48,7 @@ func (e *ClaudeExecutor) Execute(ctx context.Context, req Request, onProgress Pr
 		args = append(args, "--allowedTools", tool)
 	}
 
-	cmd := exec.CommandContext(ctx, e.ClaudePath, args...)
+	cmd := exec.CommandContext(ctx, e.ClaudePath, args...) //nolint:gosec // ClaudePath from trusted config
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	cmd.Cancel = func() error {
 		// Kill the entire process group so child processes are terminated too
@@ -69,7 +69,7 @@ func (e *ClaudeExecutor) Execute(ctx context.Context, req Request, onProgress Pr
 	}
 
 	// Pipe prompt via stdin
-	promptFile, err := os.Open(promptPath)
+	promptFile, err := os.Open(promptPath) //nolint:gosec // path built internally by WritePromptFile
 	if err != nil {
 		return nil, fmt.Errorf("opening prompt file: %w", err)
 	}

@@ -64,7 +64,7 @@ func LoadFromFile(path string) (*Config, error) {
 }
 
 func loadFile(cfg *Config, path string) error {
-	data, err := os.ReadFile(path)
+	data, err := os.ReadFile(path) //nolint:gosec // path comes from trusted config search paths
 	if os.IsNotExist(err) {
 		return nil
 	}

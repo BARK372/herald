@@ -125,13 +125,14 @@ func StartTask(tm *task.Manager, pm *project.Manager, defaultTimeout, maxTimeout
 		// Duration estimation
 		if estimator != nil {
 			avgDur, count, estErr := estimator.GetAverageTaskDuration(proj.Name)
-			if estErr != nil {
+			switch {
+			case estErr != nil:
 				slog.Warn("failed to get average task duration",
 					"project", proj.Name,
 					"error", estErr)
-			} else if count == 0 || avgDur <= 0 {
+			case count == 0 || avgDur <= 0:
 				b.WriteString("- Estimated duration: unknown (no task history for this project)\n")
-			} else {
+			default:
 				fmt.Fprintf(&b, "- Estimated duration: ~%s (based on %d previous tasks)\n",
 					formatEstimate(avgDur), count)
 

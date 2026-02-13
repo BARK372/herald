@@ -28,13 +28,13 @@ func initGitRepo(t *testing.T) string {
 		{"git", "config", "user.name", "Test"},
 	}
 	for _, args := range cmds {
-		cmd := exec.Command(args[0], args[1:]...)
+		cmd := exec.Command(args[0], args[1:]...) //nolint:gosec // test helper with hardcoded args
 		cmd.Dir = dir
 		require.NoError(t, cmd.Run(), "failed to run: %v", args)
 	}
 
 	// Create a file and make an initial commit
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "main.go"), []byte("package main\n"), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "main.go"), []byte("package main\n"), 0600))
 	cmd := exec.Command("git", "add", ".")
 	cmd.Dir = dir
 	require.NoError(t, cmd.Run())
@@ -122,7 +122,7 @@ func TestGetDiff_WhenProjectHasChanges_ReturnsDiff(t *testing.T) {
 	handler := GetDiff(tm, pm)
 
 	// Make an uncommitted change
-	require.NoError(t, os.WriteFile(filepath.Join(repoPath, "main.go"), []byte("package main\n\nfunc main() {}\n"), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(repoPath, "main.go"), []byte("package main\n\nfunc main() {}\n"), 0600))
 
 	result, err := handler(context.Background(), makeReq(map[string]any{
 		"project": "test-repo",
@@ -204,9 +204,9 @@ func newReadFileDeps(t *testing.T) readFileDeps {
 	root := t.TempDir()
 
 	// Create test files
-	require.NoError(t, os.MkdirAll(filepath.Join(root, "src"), 0755))
-	require.NoError(t, os.WriteFile(filepath.Join(root, "main.go"), []byte("package main\n"), 0644))
-	require.NoError(t, os.WriteFile(filepath.Join(root, "src", "handler.go"), []byte("package src\n"), 0644))
+	require.NoError(t, os.MkdirAll(filepath.Join(root, "src"), 0750))
+	require.NoError(t, os.WriteFile(filepath.Join(root, "main.go"), []byte("package main\n"), 0600))
+	require.NoError(t, os.WriteFile(filepath.Join(root, "src", "handler.go"), []byte("package src\n"), 0600))
 
 	pm := project.NewManager(map[string]config.Project{
 		"test": {
@@ -319,7 +319,7 @@ func TestReadFile_WhenFileTooLarge_ReturnsError(t *testing.T) {
 
 	// Create a file larger than 1MB
 	bigContent := make([]byte, 1024*1024+1)
-	require.NoError(t, os.WriteFile(filepath.Join(deps.root, "big.bin"), bigContent, 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(deps.root, "big.bin"), bigContent, 0600))
 
 	result, err := deps.handler(context.Background(), makeReq(map[string]any{
 		"path": "big.bin",

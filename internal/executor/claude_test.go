@@ -17,7 +17,7 @@ import (
 func writeTestScript(t *testing.T, path, content string) {
 	t.Helper()
 	tmp := path + ".tmp"
-	require.NoError(t, os.WriteFile(tmp, []byte(content), 0755))
+	require.NoError(t, os.WriteFile(tmp, []byte(content), 0700)) //nolint:gosec // test scripts must be executable
 	require.NoError(t, os.Rename(tmp, path))
 }
 

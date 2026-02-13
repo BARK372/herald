@@ -16,7 +16,7 @@ func WritePromptFile(workDir, taskID, prompt string) (string, error) {
 	}
 
 	path := filepath.Join(dir, "prompt.md")
-	if err := os.WriteFile(path, []byte(prompt), 0640); err != nil {
+	if err := os.WriteFile(path, []byte(prompt), 0600); err != nil {
 		return "", fmt.Errorf("writing prompt file: %w", err)
 	}
 
