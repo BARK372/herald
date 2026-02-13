@@ -55,7 +55,7 @@ func TestStartTask_WhenNormalTimeout_AcceptsIt(t *testing.T) {
 	t.Parallel()
 
 	tm, pm := newTestDeps()
-	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, nil)
+	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", nil)
 
 	result, err := handler(context.Background(), makeReq(map[string]any{
 		"prompt":          "do something",
@@ -76,7 +76,7 @@ func TestStartTask_WhenTimeoutExceedsMax_ClampsToMax(t *testing.T) {
 	t.Parallel()
 
 	tm, pm := newTestDeps()
-	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, nil) // max = 120 min
+	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", nil) // max = 120 min
 
 	result, err := handler(context.Background(), makeReq(map[string]any{
 		"prompt":          "do something",
@@ -108,7 +108,7 @@ func TestStartTask_WhenTimeoutZeroOrNegative_UsesDefault(t *testing.T) {
 			t.Parallel()
 
 			tm, pm := newTestDeps()
-			handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, nil)
+			handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", nil)
 
 			result, err := handler(context.Background(), makeReq(map[string]any{
 				"prompt":          "do something",
@@ -130,7 +130,7 @@ func TestStartTask_WhenNoTimeoutProvided_UsesDefault(t *testing.T) {
 	t.Parallel()
 
 	tm, pm := newTestDeps()
-	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, nil)
+	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", nil)
 
 	result, err := handler(context.Background(), makeReq(map[string]any{
 		"prompt": "do something",
@@ -149,7 +149,7 @@ func TestStartTask_WhenPromptTooLarge_RejectsWithError(t *testing.T) {
 	t.Parallel()
 
 	tm, pm := newTestDeps()
-	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 100, nil) // max 100 bytes
+	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 100, "claude-sonnet-4-5-20250929", nil) // max 100 bytes
 
 	result, err := handler(context.Background(), makeReq(map[string]any{
 		"prompt": string(make([]byte, 200)), // 200 bytes > 100 limit
@@ -165,7 +165,7 @@ func TestStartTask_WhenEstimatorHasHistory_IncludesEstimate(t *testing.T) {
 
 	tm, pm := newTestDeps()
 	est := &mockEstimator{avgDuration: 3 * time.Minute, count: 12}
-	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, est)
+	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", est)
 
 	result, err := handler(context.Background(), makeReq(map[string]any{
 		"prompt": "do something",
@@ -183,7 +183,7 @@ func TestStartTask_WhenEstimatorNoHistory_ShowsUnknown(t *testing.T) {
 
 	tm, pm := newTestDeps()
 	est := &mockEstimator{avgDuration: 0, count: 0}
-	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, est)
+	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", est)
 
 	result, err := handler(context.Background(), makeReq(map[string]any{
 		"prompt": "do something",
@@ -198,7 +198,7 @@ func TestStartTask_WhenNilEstimator_SkipsEstimate(t *testing.T) {
 	t.Parallel()
 
 	tm, pm := newTestDeps()
-	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, nil)
+	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", nil)
 
 	result, err := handler(context.Background(), makeReq(map[string]any{
 		"prompt": "do something",
@@ -208,4 +208,44 @@ func TestStartTask_WhenNilEstimator_SkipsEstimate(t *testing.T) {
 	text := result.Content[0].(mcp.TextContent).Text
 	assert.Contains(t, text, "Task started")
 	assert.NotContains(t, text, "Estimated duration")
+}
+
+func TestStartTask_WhenExplicitModel_UsesIt(t *testing.T) {
+	t.Parallel()
+
+	tm, pm := newTestDeps()
+	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", nil)
+
+	result, err := handler(context.Background(), makeReq(map[string]any{
+		"prompt": "do something",
+		"model":  "claude-opus-4-6",
+	}))
+	require.NoError(t, err)
+
+	text := result.Content[0].(mcp.TextContent).Text
+	assert.Contains(t, text, "Task started")
+	assert.Contains(t, text, "claude-opus-4-6")
+
+	tasks := tm.List(task.Filter{})
+	require.Len(t, tasks, 1)
+	assert.Equal(t, "claude-opus-4-6", tasks[0].Model)
+}
+
+func TestStartTask_WhenNoModel_UsesConfigDefault(t *testing.T) {
+	t.Parallel()
+
+	tm, pm := newTestDeps()
+	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", nil)
+
+	result, err := handler(context.Background(), makeReq(map[string]any{
+		"prompt": "do something",
+	}))
+	require.NoError(t, err)
+
+	text := result.Content[0].(mcp.TextContent).Text
+	assert.Contains(t, text, "claude-sonnet-4-5-20250929")
+
+	tasks := tm.List(task.Filter{})
+	require.Len(t, tasks, 1)
+	assert.Equal(t, "claude-sonnet-4-5-20250929", tasks[0].Model)
 }

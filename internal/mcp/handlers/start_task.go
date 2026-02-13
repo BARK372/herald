@@ -24,8 +24,9 @@ type DurationEstimator interface {
 // StartTask returns a handler that creates and starts a Claude Code task.
 // defaultTimeout and maxTimeout are expressed as time.Duration.
 // maxPromptSize limits prompt length in bytes (0 = no limit).
+// defaultModel is used when no model is specified per task.
 // estimator may be nil to skip duration estimation.
-func StartTask(tm *task.Manager, pm *project.Manager, defaultTimeout, maxTimeout time.Duration, maxPromptSize int, estimator DurationEstimator) server.ToolHandlerFunc {
+func StartTask(tm *task.Manager, pm *project.Manager, defaultTimeout, maxTimeout time.Duration, maxPromptSize int, defaultModel string, estimator DurationEstimator) server.ToolHandlerFunc {
 	defaultMinutes := int(defaultTimeout.Minutes())
 	if defaultMinutes <= 0 {
 		defaultMinutes = 30
@@ -73,10 +74,16 @@ func StartTask(tm *task.Manager, pm *project.Manager, defaultTimeout, maxTimeout
 		gitBranch, _ := args["git_branch"].(string)
 		dryRun, _ := args["dry_run"].(bool)
 
+		model := defaultModel
+		if m, ok := args["model"].(string); ok && m != "" {
+			model = m
+		}
+
 		// Create the task
 		t := tm.Create(proj.Name, prompt, priority, timeoutMinutes)
 		t.GitBranch = gitBranch
 		t.DryRun = dryRun
+		t.Model = model
 		t.AllowedTools = proj.AllowedTools
 
 		// Capture MCP session for push notifications
@@ -90,6 +97,7 @@ func StartTask(tm *task.Manager, pm *project.Manager, defaultTimeout, maxTimeout
 			Prompt:         prompt,
 			ProjectPath:    proj.Path,
 			SessionID:      sessionID,
+			Model:          model,
 			AllowedTools:   proj.AllowedTools,
 			TimeoutMinutes: timeoutMinutes,
 			DryRun:         dryRun,
@@ -105,6 +113,7 @@ func StartTask(tm *task.Manager, pm *project.Manager, defaultTimeout, maxTimeout
 		fmt.Fprintf(&b, "Task started\n\n")
 		fmt.Fprintf(&b, "- ID: %s\n", t.ID)
 		fmt.Fprintf(&b, "- Project: %s\n", proj.Name)
+		fmt.Fprintf(&b, "- Model: %s\n", model)
 		fmt.Fprintf(&b, "- Priority: %s\n", string(priority))
 		if dryRun {
 			b.WriteString("- Mode: dry run (plan only)\n")

@@ -708,7 +708,7 @@ func TestCancelTask_WhenAlreadyCompleted_ReturnsError(t *testing.T) {
 func TestStartTask_WhenMissingPrompt_ReturnsError(t *testing.T) {
 	t.Parallel()
 	tm, pm := newTestDeps()
-	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, nil)
+	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", nil)
 
 	result, err := handler(context.Background(), makeReq(map[string]any{}))
 	require.NoError(t, err)
@@ -720,7 +720,7 @@ func TestStartTask_WhenMissingPrompt_ReturnsError(t *testing.T) {
 func TestStartTask_WhenDryRun_ShowsDryRunMode(t *testing.T) {
 	t.Parallel()
 	tm, pm := newTestDeps()
-	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, nil)
+	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", nil)
 
 	result, err := handler(context.Background(), makeReq(map[string]any{
 		"prompt": "plan the refactoring",
@@ -735,7 +735,7 @@ func TestStartTask_WhenDryRun_ShowsDryRunMode(t *testing.T) {
 func TestStartTask_WhenSessionID_ShowsResuming(t *testing.T) {
 	t.Parallel()
 	tm, pm := newTestDeps()
-	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, nil)
+	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", nil)
 
 	result, err := handler(context.Background(), makeReq(map[string]any{
 		"prompt":     "continue",

@@ -19,6 +19,7 @@ func TestDefaults_SetsExpectedValues(t *testing.T) {
 	assert.Equal(t, 8420, cfg.Server.Port)
 	assert.Equal(t, "info", cfg.Server.LogLevel)
 	assert.Equal(t, "claude", cfg.Execution.ClaudePath)
+	assert.Equal(t, "claude-sonnet-4-5-20250929", cfg.Execution.Model)
 	assert.Equal(t, 30*time.Minute, cfg.Execution.DefaultTimeout)
 	assert.Equal(t, 3, cfg.Execution.MaxConcurrent)
 	assert.Equal(t, 200, cfg.RateLimit.RequestsPerMinute)

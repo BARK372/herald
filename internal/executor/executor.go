@@ -21,6 +21,7 @@ type Request struct {
 	Prompt         string
 	ProjectPath    string
 	SessionID      string
+	Model          string
 	AllowedTools   []string
 	TimeoutMinutes int
 	DryRun         bool

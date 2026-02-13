@@ -35,6 +35,10 @@ func (e *ClaudeExecutor) Execute(ctx context.Context, req Request, onProgress Pr
 		"--output-format", "stream-json",
 	}
 
+	if req.Model != "" {
+		args = append(args, "--model", req.Model)
+	}
+
 	if req.SessionID != "" {
 		args = append(args, "--resume", req.SessionID)
 	}

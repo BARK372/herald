@@ -37,6 +37,7 @@ type DatabaseConfig struct {
 
 type ExecutionConfig struct {
 	ClaudePath     string            `yaml:"claude_path"`
+	Model          string            `yaml:"model"`
 	DefaultTimeout time.Duration     `yaml:"default_timeout"`
 	MaxTimeout     time.Duration     `yaml:"max_timeout"`
 	WorkDir        string            `yaml:"work_dir"`
@@ -96,6 +97,7 @@ func Defaults() *Config {
 		},
 		Execution: ExecutionConfig{
 			ClaudePath:     "claude",
+			Model:          "claude-sonnet-4-5-20250929",
 			DefaultTimeout: 30 * time.Minute,
 			MaxTimeout:     2 * time.Hour,
 			WorkDir:        "~/.config/herald/work",

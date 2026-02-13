@@ -402,3 +402,76 @@ echo '{"type":"result","subtype":"success","cost_usd":0.01,"num_turns":1}'
 	assert.NotNil(t, result)
 	assert.Contains(t, events, "started")
 }
+
+func TestExecute_WhenModelProvided_PassesModelFlag(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	scriptPath := filepath.Join(tmpDir, "model_claude.sh")
+	// Script that verifies --model flag is in $@ by checking args
+	script := `#!/bin/sh
+found=0
+for arg in "$@"; do
+    if [ "$arg" = "--model" ]; then
+        found=1
+    fi
+done
+if [ "$found" = "0" ]; then
+    echo "ERROR: --model flag not found" >&2
+    exit 1
+fi
+echo '{"type":"result","subtype":"success","cost_usd":0.01,"num_turns":1}'
+`
+	writeTestScript(t, scriptPath, script)
+
+	exec := &ClaudeExecutor{
+		ClaudePath: scriptPath,
+		WorkDir:    tmpDir,
+	}
+
+	req := Request{
+		TaskID:      "herald-model01",
+		Prompt:      "test",
+		ProjectPath: tmpDir,
+		Model:       "claude-opus-4-6",
+	}
+
+	result, err := exec.Execute(context.Background(), req, nil)
+	require.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Equal(t, 0, result.ExitCode)
+}
+
+func TestExecute_WhenNoModel_DoesNotPassModelFlag(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	scriptPath := filepath.Join(tmpDir, "nomodel_claude.sh")
+	// Script that fails if --model flag is found
+	script := `#!/bin/sh
+for arg in "$@"; do
+    if [ "$arg" = "--model" ]; then
+        echo "ERROR: --model flag should not be present" >&2
+        exit 1
+    fi
+done
+echo '{"type":"result","subtype":"success","cost_usd":0.01,"num_turns":1}'
+`
+	writeTestScript(t, scriptPath, script)
+
+	exec := &ClaudeExecutor{
+		ClaudePath: scriptPath,
+		WorkDir:    tmpDir,
+	}
+
+	req := Request{
+		TaskID:      "herald-nomodel01",
+		Prompt:      "test",
+		ProjectPath: tmpDir,
+	}
+
+	result, err := exec.Execute(context.Background(), req, nil)
+	require.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Equal(t, 0, result.ExitCode)
+}

@@ -65,6 +65,9 @@ func formatSummary(snap task.TaskSnapshot) (*mcp.CallToolResult, error) {
 
 	fmt.Fprintf(&b, "- ID: %s\n", snap.ID)
 	fmt.Fprintf(&b, "- Project: %s\n", snap.Project)
+	if snap.Model != "" {
+		fmt.Fprintf(&b, "- Model: %s\n", snap.Model)
+	}
 	fmt.Fprintf(&b, "- Duration: %s\n", snap.FormatDuration())
 
 	if snap.CostUSD > 0 {

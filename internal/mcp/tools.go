@@ -46,8 +46,11 @@ func registerTools(s *server.MCPServer, deps *Deps) {
 			mcp.WithBoolean("dry_run",
 				mcp.Description("If true, Claude Code plans but doesn't execute changes"),
 			),
+			mcp.WithString("model",
+				mcp.Description("Claude model to use for this task. Defaults to config value. Examples: claude-sonnet-4-5-20250929, claude-opus-4-6"),
+			),
 		),
-		handlers.StartTask(deps.Tasks, deps.Projects, deps.Execution.DefaultTimeout, deps.Execution.MaxTimeout, deps.Execution.MaxPromptSize, deps.Store),
+		handlers.StartTask(deps.Tasks, deps.Projects, deps.Execution.DefaultTimeout, deps.Execution.MaxTimeout, deps.Execution.MaxPromptSize, deps.Execution.Model, deps.Store),
 	)
 
 	// check_task — Check task status

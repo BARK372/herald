@@ -110,6 +110,9 @@ func formatCheckResponse(snap task.TaskSnapshot, includeOutput bool, outputLines
 	case task.StatusCompleted:
 		fmt.Fprintf(&b, "Status: completed\n")
 		fmt.Fprintf(&b, "Duration: %s\n", snap.FormatDuration())
+		if snap.Model != "" {
+			fmt.Fprintf(&b, "Model: %s\n", snap.Model)
+		}
 		if snap.CostUSD > 0 {
 			fmt.Fprintf(&b, "Cost: $%.2f\n", snap.CostUSD)
 		}

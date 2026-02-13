@@ -64,6 +64,7 @@ type Task struct {
 	Prompt         string
 	Status         Status
 	Priority       Priority
+	Model          string
 	SessionID      string
 	MCPSessionID   string // MCP client session for push notifications (runtime-only)
 	PID            int
@@ -279,6 +280,7 @@ func (t *Task) Snapshot() TaskSnapshot {
 		Prompt:         t.Prompt,
 		Status:         t.Status,
 		Priority:       t.Priority,
+		Model:          t.Model,
 		SessionID:      t.SessionID,
 		MCPSessionID:   t.MCPSessionID,
 		GitBranch:      t.GitBranch,
@@ -306,6 +308,7 @@ type TaskSnapshot struct {
 	Prompt         string
 	Status         Status
 	Priority       Priority
+	Model          string
 	SessionID      string
 	MCPSessionID   string
 	GitBranch      string

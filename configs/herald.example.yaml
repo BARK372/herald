@@ -32,6 +32,8 @@ database:
 execution:
   # Path to the Claude Code CLI binary
   claude_path: "claude"
+  # Model for task execution (default: sonnet, cheaper for implementation)
+  model: "claude-sonnet-4-5-20250929"
   # Default task timeout (override per task)
   default_timeout: 30m
   max_timeout: 2h
