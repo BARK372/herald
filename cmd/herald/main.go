@@ -376,7 +376,6 @@ func run(ctx context.Context, cfg *config.Config) error {
 }
 
 // Herald favicon — yellow-green tilted rounded square with dark "H".
-// Based on the kolapsis icon style. Embedded so the binary stays self-contained.
 const faviconSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
 <g transform="rotate(-3 256 256)">
 <rect x="18" y="18" width="476" height="476" rx="95" fill="#c8ff00"/>

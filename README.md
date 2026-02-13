@@ -14,11 +14,11 @@
 </p>
 
 <p align="center">
-  <a href="#-quick-start">Quick Start</a> &middot;
-  <a href="#-how-it-works">How It Works</a> &middot;
-  <a href="#%EF%B8%8F-features">Features</a> &middot;
-  <a href="#-security">Security</a> &middot;
-  <a href="#-roadmap">Roadmap</a>
+  <a href="#quick-start">Quick Start</a> &middot;
+  <a href="#how-it-works">How It Works</a> &middot;
+  <a href="#features">Features</a> &middot;
+  <a href="#security">Security</a> &middot;
+  <a href="#roadmap">Roadmap</a>
   <br />
   🇫🇷 <a href="README_FR.md">Version française</a>
 </p>
@@ -153,22 +153,37 @@ You (phone, later)         Claude Chat                Herald
 
 ## Quick Start
 
-**Prerequisites**: [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) installed, a domain with HTTPS.
+**Prerequisites**: [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) installed, a domain with HTTPS (reverse proxy like Traefik or Caddy).
+
+**1. Install**
 
 ```bash
-# Install (latest release)
 curl -fsSL https://raw.githubusercontent.com/btouchard/herald/main/install.sh | sh
+```
 
-# Or build from source (requires Go 1.26+)
+<details>
+<summary>Or build from source (requires Go 1.26+)</summary>
+
+```bash
 git clone https://github.com/btouchard/herald.git
 cd herald && make build
+# Binary is in ./bin/herald
+```
+</details>
 
-# Configure
+**2. Configure**
+
+```bash
 mkdir -p ~/.config/herald
 cp configs/herald.example.yaml ~/.config/herald/herald.yaml
+# Edit with your domain and projects (see below)
+```
 
-# Run (client secret is auto-generated on first start)
-./bin/herald serve
+**3. Run**
+
+```bash
+herald serve
+# Client secret is auto-generated on first start and displayed in the console
 ```
 
 Edit `~/.config/herald/herald.yaml` with your domain and projects:

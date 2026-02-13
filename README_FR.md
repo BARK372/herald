@@ -14,11 +14,11 @@
 </p>
 
 <p align="center">
-  <a href="#-demarrage-rapide">Demarrage rapide</a> &middot;
-  <a href="#-comment-ca-marche">Comment ca marche</a> &middot;
-  <a href="#%EF%B8%8F-fonctionnalites">Fonctionnalites</a> &middot;
-  <a href="#-securite">Securite</a> &middot;
-  <a href="#-feuille-de-route">Feuille de route</a>
+  <a href="#demarrage-rapide">Demarrage rapide</a> &middot;
+  <a href="#comment-ca-marche">Comment ca marche</a> &middot;
+  <a href="#fonctionnalites">Fonctionnalites</a> &middot;
+  <a href="#securite">Securite</a> &middot;
+  <a href="#feuille-de-route">Feuille de route</a>
   <br />
   🇬🇧 <a href="README.md">English version</a>
 </p>
@@ -153,19 +153,37 @@ Vous (telephone, apres)    Claude Chat                Herald
 
 ## Demarrage rapide
 
-**Prerequis** : Go 1.26+, [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) installe, un domaine avec HTTPS.
+**Prerequis** : [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) installe, un domaine avec HTTPS (reverse proxy type Traefik ou Caddy).
+
+**1. Installer**
 
 ```bash
-# Compiler
+curl -fsSL https://raw.githubusercontent.com/btouchard/herald/main/install.sh | sh
+```
+
+<details>
+<summary>Ou compiler depuis les sources (necessite Go 1.26+)</summary>
+
+```bash
 git clone https://github.com/btouchard/herald.git
 cd herald && make build
+# Le binaire est dans ./bin/herald
+```
+</details>
 
-# Configurer
+**2. Configurer**
+
+```bash
 mkdir -p ~/.config/herald
 cp configs/herald.example.yaml ~/.config/herald/herald.yaml
+# Editez avec votre domaine et vos projets (voir ci-dessous)
+```
 
-# Lancer (le secret client est auto-genere au premier demarrage)
-./bin/herald serve
+**3. Lancer**
+
+```bash
+herald serve
+# Le secret client est auto-genere au premier demarrage et affiche dans la console
 ```
 
 Editez `~/.config/herald/herald.yaml` avec votre domaine et vos projets :
