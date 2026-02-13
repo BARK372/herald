@@ -20,6 +20,7 @@ import (
 	"github.com/kolapsis/herald/internal/executor"
 	heraldmcp "github.com/kolapsis/herald/internal/mcp"
 	authmw "github.com/kolapsis/herald/internal/mcp/middleware"
+	"github.com/kolapsis/herald/internal/notify"
 	"github.com/kolapsis/herald/internal/project"
 	"github.com/kolapsis/herald/internal/store"
 	"github.com/kolapsis/herald/internal/task"
@@ -167,6 +168,19 @@ func run(ctx context.Context, cfg *config.Config) error {
 		Store:     db,
 		Execution: cfg.Execution,
 		Version:   version,
+	})
+
+	// --- Push Notifications ---
+	mcpNotifier := notify.NewMCPNotifier(mcpServer, 3*time.Second)
+	hub := notify.NewHub(mcpNotifier)
+	tm.SetNotifyFunc(func(e task.TaskEvent) {
+		hub.Notify(notify.Event{
+			Type:         e.Type,
+			TaskID:       e.TaskID,
+			Project:      e.Project,
+			Message:      e.Message,
+			MCPSessionID: e.MCPSessionID,
+		})
 	})
 
 	mcpHTTP := server.NewStreamableHTTPServer(mcpServer)

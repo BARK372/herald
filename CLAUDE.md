@@ -50,7 +50,7 @@ Claude Chat (mobile/web)
     → Task Manager (goroutines)
     → Claude Code Executor (os/exec → claude -p --output-format stream-json)
     → SQLite (persistence)
-    → Notification Hub (ntfy, webhooks, SSE)
+    → MCP Notifications (server push via SSE)
   → Dashboard (embedded HTML/JS, /dashboard)
 
 Claude Code (terminal, via herald_push)
@@ -103,9 +103,7 @@ herald/
 │   │   └── migrations.go           # Schema migrations
 │   ├── notify/
 │   │   ├── notifier.go             # Interface Notifier + NotificationHub
-│   │   ├── ntfy.go                 # Notification push ntfy
-│   │   ├── webhook.go              # Webhook HTTP générique (HMAC signed)
-│   │   └── sse.go                  # SSE pour dashboard temps réel
+│   │   └── mcp.go                  # MCP server notifications (push via SSE)
 │   ├── auth/
 │   │   ├── oauth.go                # OAuth 2.1 server (authorization code + PKCE)
 │   │   ├── token.go                # JWT token generation/validation
@@ -280,7 +278,7 @@ if bytes.Contains(prefix, []byte(`"type":"result"`)) {
 - Les interfaces clés du projet :
   - `store.Store` — persistance (implémentée par SQLite)
   - `executor.Executor` — exécution de tâches (implémentée par Claude Code)
-  - `notify.Notifier` — envoi de notifications (implémentée par ntfy, webhook, SSE)
+  - `notify.Notifier` — envoi de notifications (implémentée par MCPNotifier)
 
 ### Concurrence
 
@@ -509,7 +507,6 @@ func GenerateTaskID() string {
 
 - HTML/CSS/JS vanilla uniquement. Pas de framework, pas de build step, pas de npm.
 - Servi par le binaire Go via `go:embed`.
-- SSE via `EventSource` natif pour le temps réel.
 - Dark mode natif via `prefers-color-scheme`.
 
 ---

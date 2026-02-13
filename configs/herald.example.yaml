@@ -52,22 +52,6 @@ execution:
     CLAUDE_CODE_ENTRYPOINT: "herald"
     CLAUDE_CODE_DISABLE_AUTO_UPDATE: "1"
 
-notifications:
-  ntfy:
-    enabled: false
-    server: "https://ntfy.sh"
-    topic: "herald"
-    # token: "${HERALD_NTFY_TOKEN}"
-    events:
-      - "task.completed"
-      - "task.failed"
-
-  # webhooks:
-  #   - name: "n8n"
-  #     url: "https://n8n.example.com/webhook/herald"
-  #     secret: "${HERALD_WEBHOOK_SECRET}"
-  #     events: ["task.completed", "task.failed"]
-
 projects:
   # Add your projects here
   # my-project:

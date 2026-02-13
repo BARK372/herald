@@ -55,23 +55,9 @@ type ExecutionConfig struct {
 }
 
 type NotificationsConfig struct {
-	Ntfy     NtfyConfig      `yaml:"ntfy"`
-	Webhooks []WebhookConfig `yaml:"webhooks"`
-}
-
-type NtfyConfig struct {
-	Enabled bool     `yaml:"enabled"`
-	Server  string   `yaml:"server"`
-	Topic   string   `yaml:"topic"`
-	Token   string   `yaml:"token"`
-	Events  []string `yaml:"events"`
-}
-
-type WebhookConfig struct {
-	Name   string   `yaml:"name"`
-	URL    string   `yaml:"url"`
-	Secret string   `yaml:"secret"`
-	Events []string `yaml:"events"`
+	// MCP server notifications are always enabled (push via SSE).
+	// No external notification backends (ntfy, webhooks) — Herald uses
+	// the MCP notification protocol to push updates to Claude Chat directly.
 }
 
 type Project struct {

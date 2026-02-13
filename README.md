@@ -142,9 +142,8 @@ You (phone, later)         Claude Chat                Herald
 
 ### Operations
 
-- **Push notifications** — Get notified via [ntfy](https://ntfy.sh) or webhooks when tasks complete or fail.
+- **MCP push notifications** — Herald pushes task updates directly to Claude Chat via MCP server notifications. No polling needed.
 - **SQLite persistence** — Tasks survive server restarts. Full history, fully searchable.
-- **Real-time dashboard** — Embedded web UI with SSE for live task monitoring. *(v0.3)*
 
 ### Engineering
 
@@ -239,13 +238,6 @@ execution:
     CLAUDE_CODE_ENTRYPOINT: "herald"
     CLAUDE_CODE_DISABLE_AUTO_UPDATE: "1"
 
-notifications:
-  ntfy:
-    enabled: false
-    server: "https://ntfy.sh"
-    topic: "herald"
-    events: ["task.completed", "task.failed"]
-
 projects:
   my-api:
     path: "/home/you/projects/my-api"
@@ -320,7 +312,7 @@ Claude Chat (mobile/web)
     ├── Task Manager (goroutine pool, priority queue)
     ├── Claude Code Executor (os/exec, stream-json parsing)
     ├── SQLite (persistence)
-    └── Notification Hub (ntfy, webhooks)
+    └── MCP Notifications (server push via SSE)
 ```
 
 **Design principles**: single binary (everything embedded via `go:embed`), async-first (each task is a goroutine), stateless MCP with stateful backend, fail-safe (Herald crash doesn't kill running Claude Code processes).
@@ -384,7 +376,7 @@ services:
 |---|---|---|
 | **v0.1** | :white_check_mark: Done | Core MCP server, async tasks, Git integration, OAuth 2.1, SQLite |
 | **v0.2** | :construction: In progress | Shared memory — bidirectional context between Claude Chat and Claude Code |
-| **v0.3** | :clipboard: Planned | Real-time dashboard (embedded web UI with SSE) |
+| **v0.3** | :clipboard: Planned | Real-time dashboard (embedded web UI) |
 | **v1.0** | :rocket: Future | Stable API, plugin system |
 
 Have an idea? [Open an issue](https://github.com/kolapsis/herald/issues). We build what users need.

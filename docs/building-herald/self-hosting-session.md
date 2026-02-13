@@ -20,7 +20,7 @@ The initial version shipped with:
 - **Session resumption** (multi-turn Claude Code conversations)
 - **Multi-project support** with per-project allowed tools
 - **SQLite persistence** (pure Go, zero CGO)
-- **Push notifications** via ntfy
+- **MCP push notifications** (server-initiated via SSE)
 - **Structured logging** with `log/slog`
 
 ### Security Hardening

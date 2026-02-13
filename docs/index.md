@@ -50,9 +50,8 @@ Your code never leaves your machine. Herald just orchestrates.
 
 ### Operations
 
-- **Push notifications** — Get notified via [ntfy](https://ntfy.sh) or webhooks when tasks complete or fail.
+- **MCP push notifications** — Herald pushes task updates directly to Claude Chat via MCP server notifications. No polling needed.
 - **SQLite persistence** — Tasks survive server restarts. Full history, fully searchable.
-- **Real-time dashboard** — Embedded web UI with SSE for live task monitoring. *(v0.3)*
 
 ### Engineering
 

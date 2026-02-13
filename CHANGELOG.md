@@ -40,6 +40,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Session resumption (multi-turn Claude Code conversations)
 - Multi-project support with per-project allowed tools
 - SQLite persistence (pure Go, zero CGO)
-- Push notifications via ntfy
+- MCP push notifications (server-initiated, via SSE)
 - Structured logging with `log/slog`
 - README in English and French
