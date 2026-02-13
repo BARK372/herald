@@ -70,7 +70,12 @@ func TestWritePromptFile_HandlesLargePrompt(t *testing.T) {
 func TestWritePromptFile_WhenInvalidWorkDir_ReturnsError(t *testing.T) {
 	t.Parallel()
 
-	_, err := WritePromptFile("/nonexistent/path/that/does/not/exist", "herald-err01", "prompt")
+	// Use a file (not a directory) as work dir — MkdirAll fails even as root
+	tmpDir := t.TempDir()
+	filePath := filepath.Join(tmpDir, "not-a-dir")
+	require.NoError(t, os.WriteFile(filePath, []byte("block"), 0644))
+
+	_, err := WritePromptFile(filePath, "herald-err01", "prompt")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "creating prompt directory")
 }
