@@ -9,11 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Configurable model per task (`--model` flag, defaults to Sonnet for cost efficiency)
+- Auto-generated secrets (zero-config auth setup)
+- `herald rotate-secret` subcommand
+- `herald health` subcommand for Docker HEALTHCHECK
+- `docker-compose.yml` for minimal deployment
+- Long-polling on `check_task` (returns only on status change, not progress updates)
+- MCP push notifications for task lifecycle events
 - `herald_push` MCP tool — bidirectional bridge allowing Claude Code to push session context to Herald for remote monitoring and continuation from another device
 - New task type `linked` for sessions pushed from Claude Code via `herald_push`
 - Deduplication: pushing the same `session_id` updates the existing linked task instead of creating a duplicate
 - `list_tasks` shows linked sessions with `linked` status filter
 - SQLite migration: `type` column on tasks table to distinguish regular tasks from linked sessions
+
+### Roadmap
+
+- Model templates per task type (e.g. review→opus, test→sonnet, fix→sonnet) with config-driven defaults
 
 ### Security
 
