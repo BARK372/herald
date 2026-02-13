@@ -49,6 +49,11 @@ func (e *ClaudeExecutor) Execute(ctx context.Context, req Request, onProgress Pr
 	}
 
 	cmd := exec.CommandContext(ctx, e.ClaudePath, args...)
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	cmd.Cancel = func() error {
+		// Kill the entire process group so child processes are terminated too
+		return syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
+	}
 
 	if req.ProjectPath != "" {
 		cmd.Dir = req.ProjectPath
@@ -97,19 +102,22 @@ func (e *ClaudeExecutor) Execute(ctx context.Context, req Request, onProgress Pr
 	}
 
 	// Parse stream-json output in background goroutines.
-	// WaitGroup ensures parseStream finishes writing to result before we read it.
+	// All pipe readers must finish before cmd.Wait() which closes the pipes.
 	var wg sync.WaitGroup
 	result := &Result{}
-	wg.Add(1)
+	wg.Add(2)
 	go func() {
 		defer wg.Done()
 		e.parseStream(req.TaskID, stdout, result, onProgress)
 	}()
-	go e.captureStderr(req.TaskID, stderr)
+	go func() {
+		defer wg.Done()
+		e.captureStderr(req.TaskID, stderr)
+	}()
 
-	// Wait for the process to complete, then wait for stream parsing to finish
-	waitErr := cmd.Wait()
+	// Drain all pipes first, then reap the process
 	wg.Wait()
+	waitErr := cmd.Wait()
 	result.Duration = time.Since(start)
 
 	if waitErr != nil {
@@ -190,24 +198,23 @@ func (e *ClaudeExecutor) captureStderr(taskID string, r io.Reader) {
 	}
 }
 
-// GracefulKill sends SIGTERM, waits, then SIGKILL if the process is still alive.
+// GracefulKill sends SIGTERM to the process group, waits, then SIGKILL if still alive.
 func GracefulKill(pid int) {
-	proc, err := os.FindProcess(pid)
-	if err != nil {
-		return
-	}
-
-	_ = proc.Signal(syscall.SIGTERM)
+	// Send SIGTERM to process group (negative PID)
+	_ = syscall.Kill(-pid, syscall.SIGTERM)
 
 	done := make(chan struct{})
 	go func() {
-		_, _ = proc.Wait()
+		proc, err := os.FindProcess(pid)
+		if err == nil {
+			_, _ = proc.Wait()
+		}
 		close(done)
 	}()
 
 	select {
 	case <-done:
 	case <-time.After(10 * time.Second):
-		_ = proc.Kill()
+		_ = syscall.Kill(-pid, syscall.SIGKILL)
 	}
 }
