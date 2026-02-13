@@ -36,5 +36,6 @@ jobs:
       - name: Run golangci-lint security checks
         uses: golangci/golangci-lint-action@v6
         with:
-          version: latest
+          version: v2.1.6
+          install-mode: goinstall
           args: --disable-all -E gosec,gocritic
