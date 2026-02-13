@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"syscall"
 	"time"
 
@@ -81,11 +82,7 @@ func cmdServe(args []string) {
 	}
 
 	setupLogging(cfg)
-
-	slog.Info("starting herald",
-		"version", version,
-		"host", cfg.Server.Host,
-		"port", cfg.Server.Port)
+	printBanner(cfg)
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 	defer stop()
@@ -166,6 +163,47 @@ func ensureClientSecret(cfg *config.Config, configPath string) error {
 	return nil
 }
 
+// printBanner displays a formatted startup summary with server info and OAuth credentials.
+func printBanner(cfg *config.Config) {
+	addr := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
+
+	fmt.Fprintf(os.Stderr, "\n")
+	fmt.Fprintf(os.Stderr, "  Herald %s\n", version)
+	fmt.Fprintf(os.Stderr, "\n")
+	fmt.Fprintf(os.Stderr, "  Server:          %s\n", addr)
+	if cfg.Server.PublicURL != "" {
+		fmt.Fprintf(os.Stderr, "  Public URL:      %s\n", cfg.Server.PublicURL)
+	}
+	fmt.Fprintf(os.Stderr, "  Database:        %s\n", cfg.Database.Path)
+	fmt.Fprintf(os.Stderr, "  Max concurrent:  %d\n", cfg.Execution.MaxConcurrent)
+
+	// Projects
+	if len(cfg.Projects) > 0 {
+		names := make([]string, 0, len(cfg.Projects))
+		for name := range cfg.Projects {
+			names = append(names, name)
+		}
+		fmt.Fprintf(os.Stderr, "  Projects:        %s\n", strings.Join(names, ", "))
+	} else {
+		fmt.Fprintf(os.Stderr, "  Projects:        (none)\n")
+	}
+
+	// OAuth
+	fmt.Fprintf(os.Stderr, "\n")
+	fmt.Fprintf(os.Stderr, "  Custom Connector (OAuth 2.1):\n")
+	fmt.Fprintf(os.Stderr, "    Client ID:     %s\n", cfg.Auth.ClientID)
+	fmt.Fprintf(os.Stderr, "    Client Secret: %s\n", cfg.Auth.ClientSecret)
+	if len(cfg.Auth.RedirectURIs) > 0 {
+		fmt.Fprintf(os.Stderr, "    Redirect URIs: %s\n", cfg.Auth.RedirectURIs[0])
+		for _, uri := range cfg.Auth.RedirectURIs[1:] {
+			fmt.Fprintf(os.Stderr, "                   %s\n", uri)
+		}
+	} else {
+		fmt.Fprintf(os.Stderr, "    Redirect URIs: (none — auth will fail! see configs/herald.example.yaml)\n")
+	}
+	fmt.Fprintf(os.Stderr, "\n")
+}
+
 // configDirFrom returns the config directory. If a config file path is given,
 // its parent directory is used; otherwise falls back to ~/.config/herald.
 func configDirFrom(configPath string) string {
@@ -199,7 +237,7 @@ func setupLogging(cfg *config.Config) {
 	}
 
 	handlers := []slog.Handler{
-		slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: level}),
+		slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: level}),
 	}
 
 	if cfg.Server.LogFile != "" {
@@ -295,6 +333,10 @@ func run(ctx context.Context, cfg *config.Config) error {
 		r.Handle("/mcp", mcpHTTP)
 	})
 
+	// Favicon (embedded SVG — overrides parent domain favicon for Custom Connector icon)
+	r.Get("/favicon.ico", serveFavicon)
+	r.Get("/favicon.svg", serveFavicon)
+
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte(`{"status":"ok"}`))
@@ -330,4 +372,23 @@ func run(ctx context.Context, cfg *config.Config) error {
 	defer cancel()
 
 	return srv.Shutdown(shutdownCtx)
+}
+
+// Herald favicon — yellow-green tilted rounded square with dark "H".
+// Based on the kolapsis icon style. Embedded so the binary stays self-contained.
+const faviconSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<g transform="rotate(-3 256 256)">
+<rect x="18" y="18" width="476" height="476" rx="95" fill="#c8ff00"/>
+<g fill="#0a0a0f">
+  <rect x="142" y="120" width="56" height="272" rx="8"/>
+  <rect x="314" y="120" width="56" height="272" rx="8"/>
+  <path d="M190 232 L322 220 L322 272 L190 284 Z"/>
+</g>
+</g>
+</svg>`
+
+func serveFavicon(w http.ResponseWriter, _ *http.Request) {
+	w.Header().Set("Content-Type", "image/svg+xml")
+	w.Header().Set("Cache-Control", "public, max-age=86400")
+	_, _ = w.Write([]byte(faviconSVG))
 }
