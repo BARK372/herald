@@ -153,10 +153,13 @@ You (phone, later)         Claude Chat                Herald
 
 ## Quick Start
 
-**Prerequisites**: Go 1.26+, [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) installed, a domain with HTTPS.
+**Prerequisites**: [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) installed, a domain with HTTPS.
 
 ```bash
-# Build
+# Install (latest release)
+curl -fsSL https://raw.githubusercontent.com/btouchard/herald/main/install.sh | sh
+
+# Or build from source (requires Go 1.26+)
 git clone https://github.com/btouchard/herald.git
 cd herald && make build
 

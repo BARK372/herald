@@ -4,7 +4,6 @@
 
 | Requirement | Version | Notes |
 |---|---|---|
-| **Go** | 1.26+ | [Download](https://go.dev/dl/) |
 | **Claude Code CLI** | Latest | [Install docs](https://docs.anthropic.com/en/docs/claude-code) |
 | **Anthropic account** | — | With Claude Code access |
 | **HTTPS domain** | — | Required for Claude Chat Custom Connectors |
@@ -13,7 +12,23 @@
 !!! tip "No Docker required"
     Herald is a single Go binary. Docker is available as an [option](../deployment/docker.md), but running the binary directly gives you native access to Claude Code and your filesystem.
 
+## Install from Release
+
+The quickest way to install Herald. Detects your OS and architecture, downloads the latest release, verifies the checksum, and installs to `/usr/local/bin`.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/btouchard/herald/main/install.sh | sh
+```
+
+To install to a custom directory:
+
+```bash
+INSTALL_DIR=~/.local/bin curl -fsSL https://raw.githubusercontent.com/btouchard/herald/main/install.sh | sh
+```
+
 ## Build from Source
+
+Requires **Go 1.26+** ([download](https://go.dev/dl/)).
 
 ```bash
 git clone https://github.com/btouchard/herald.git
@@ -37,9 +52,6 @@ CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o bin/herald ./
 
 # macOS ARM64 (Apple Silicon)
 CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o bin/herald ./cmd/herald
-
-# Windows
-CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o bin/herald.exe ./cmd/herald
 ```
 
 ## Verify Installation
