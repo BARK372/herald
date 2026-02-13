@@ -9,10 +9,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/kolapsis/herald/internal/config"
-	"github.com/kolapsis/herald/internal/executor"
-	"github.com/kolapsis/herald/internal/project"
-	"github.com/kolapsis/herald/internal/task"
+	"github.com/btouchard/herald/internal/executor"
+	"github.com/btouchard/herald/internal/project"
+	"github.com/btouchard/herald/internal/task"
+	"github.com/🚧/internal/config"
 )
 
 type mockExecutor struct{}

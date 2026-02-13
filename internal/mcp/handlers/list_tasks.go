@@ -8,7 +8,7 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 
-	"github.com/kolapsis/herald/internal/task"
+	"github.com/btouchard/herald/internal/task"
 )
 
 // ListTasks returns a handler that lists tasks with optional filters.

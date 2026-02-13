@@ -9,7 +9,7 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 
-	"github.com/kolapsis/herald/internal/task"
+	"github.com/btouchard/herald/internal/task"
 )
 
 // GetResult returns a handler that provides the full result of a completed task.

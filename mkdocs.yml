@@ -1,8 +1,8 @@
 site_name: Herald
 site_description: Herald Claude to Claude Bridge. Command your workstation from your phone.
 site_url: https://kolapsis.github.io/herald
-repo_url: https://github.com/kolapsis/herald
-repo_name: kolapsis/herald
+repo_url: https://github.com/btouchard/herald
+repo_name: btouchard/herald
 
 theme:
   name: material
@@ -72,6 +72,6 @@ markdown_extensions:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/kolapsis/herald
+      link: https://github.com/btouchard/herald
 
 copyright: Copyright &copy; 2026 Kolapsis — MIT License

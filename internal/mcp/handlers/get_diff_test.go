@@ -12,9 +12,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/kolapsis/herald/internal/config"
-	"github.com/kolapsis/herald/internal/project"
-	"github.com/kolapsis/herald/internal/task"
+	"github.com/btouchard/herald/internal/config"
+	"github.com/btouchard/herald/internal/project"
+	"github.com/btouchard/herald/internal/task"
 )
 
 // initGitRepo creates a temporary git repo with an initial commit.
@@ -723,7 +723,7 @@ func TestStartTask_WhenDryRun_ShowsDryRunMode(t *testing.T) {
 	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", nil)
 
 	result, err := handler(context.Background(), makeReq(map[string]any{
-		"prompt": "plan the refactoring",
+		"prompt":  "plan the refactoring",
 		"dry_run": true,
 	}))
 	require.NoError(t, err)

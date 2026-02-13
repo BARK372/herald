@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/kolapsis/herald/internal/store"
+	"github.com/btouchard/herald/internal/store"
 )
 
 // SQLiteAuthStore adapts store.Store to the AuthStore interface.

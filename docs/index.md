@@ -87,7 +87,7 @@ Herald uses the same protocol Anthropic built for their own integrations. No rev
 
 ```bash
 # Build
-git clone https://github.com/kolapsis/herald.git
+git clone https://github.com/btouchard/herald.git
 cd herald && make build
 
 # Configure

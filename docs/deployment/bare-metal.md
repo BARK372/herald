@@ -6,7 +6,7 @@ Running Herald as a native binary is the recommended deployment method. It provi
 
 ```bash
 # Build from source
-git clone https://github.com/kolapsis/herald.git
+git clone https://github.com/btouchard/herald.git
 cd herald
 make build
 

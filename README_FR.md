@@ -10,7 +10,7 @@
 <p align="center">
   <a href="https://go.dev"><img src="https://img.shields.io/badge/Go-1.26+-00ADD8?logo=go&logoColor=white" alt="Go 1.26+"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0-blue.svg" alt="AGPL-3.0 License"></a>
-  <a href="https://github.com/kolapsis/herald/stargazers"><img src="https://img.shields.io/github/stars/kolapsis/herald?style=social" alt="GitHub Stars"></a>
+  <a href="https://github.com/btouchard/herald/stargazers"><img src="https://img.shields.io/github/stars/btouchard/herald?style=social" alt="GitHub Stars"></a>
 </p>
 
 <p align="center">
@@ -20,10 +20,12 @@
   <a href="#-securite">Securite</a> &middot;
   <a href="#-feuille-de-route">Feuille de route</a>
   <br />
-  :gb: <a href="README.md">English version</a>
+  🇬🇧 <a href="README.md">English version</a>
 </p>
 
 ---
+
+<img src="/assets/herald-hero.svg">
 
 Vous etes dans le canape. Sur votre telephone. Vous ouvrez Claude Chat et tapez :
 
@@ -155,7 +157,7 @@ Vous (telephone, apres)    Claude Chat                Herald
 
 ```bash
 # Compiler
-git clone https://github.com/kolapsis/herald.git
+git clone https://github.com/btouchard/herald.git
 cd herald && make build
 
 # Configurer
@@ -370,12 +372,11 @@ services:
 
 | Version | Statut | Focus |
 |---|---|---|
-| **v0.1** | :white_check_mark: Termine | Serveur MCP core, taches async, integration Git, OAuth 2.1, SQLite |
-| **v0.2** | :construction: En cours | Memoire partagee — contexte bidirectionnel entre Claude Chat et Claude Code |
-| **v0.3** | :clipboard: Prevu | Monitoring temps reel (UI web — long terme) |
-| **v1.0** | :rocket: Futur | API stable, systeme de plugins |
+| **v0.1** | ✅ Termine | Serveur MCP core, taches async, integration Git, OAuth 2.1, SQLite |
+| **v0.2** | 🚧 En cours | Memoire partagee — contexte bidirectionnel entre Claude Chat et Claude Code |
+| **v0.3** | 🚀 Futur | API stable, systeme de plugins |
 
-Une idee ? [Ouvrez une issue](https://github.com/kolapsis/herald/issues). On construit ce dont les utilisateurs ont besoin.
+Une idee ? [Ouvrez une issue](https://github.com/btouchard/herald/issues). On construit ce dont les utilisateurs ont besoin.
 
 ## Contribuer
 
@@ -383,7 +384,7 @@ Herald est en alpha — le meilleur moment pour influencer un projet.
 
 ```bash
 # Demarrer
-git clone https://github.com/kolapsis/herald.git
+git clone https://github.com/btouchard/herald.git
 cd herald
 make build && make test
 
@@ -417,7 +418,7 @@ Herald utilise le meme protocole qu'Anthropic a construit pour ses propres integ
 ---
 
 <p align="center">
-  <a href="LICENSE"><strong>AGPL-3.0 License</strong></a> — Fait par <a href="https://github.com/kolapsis"><strong>Kolapsis</strong></a>
+  <a href="LICENSE"><strong>AGPL-3.0 License</strong></a> — Fait par <a href="https://kolapsis.com"><strong>Benjamin Touchard</strong></a>
   <br /><br />
-  Si Herald vous fait gagner du temps, <a href="https://github.com/kolapsis/herald">laissez une etoile</a>. Ca aide les autres a decouvrir le projet.
+  Si Herald vous fait gagner du temps, <a href="https://github.com/btouchard/herald">laissez une etoile</a>. Ca aide les autres a decouvrir le projet.
 </p>

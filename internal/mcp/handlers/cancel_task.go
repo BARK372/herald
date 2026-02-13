@@ -7,7 +7,7 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 
-	"github.com/kolapsis/herald/internal/task"
+	"github.com/btouchard/herald/internal/task"
 )
 
 // CancelTask returns a handler that cancels a running task.

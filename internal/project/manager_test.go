@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/kolapsis/herald/internal/config"
+	"github.com/btouchard/herald/internal/config"
 )
 
 func TestNewManager_SetsDefaults(t *testing.T) {

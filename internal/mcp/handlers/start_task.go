@@ -10,9 +10,9 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 
-	"github.com/kolapsis/herald/internal/executor"
-	"github.com/kolapsis/herald/internal/project"
-	"github.com/kolapsis/herald/internal/task"
+	"github.com/btouchard/herald/internal/executor"
+	"github.com/btouchard/herald/internal/project"
+	"github.com/btouchard/herald/internal/task"
 )
 
 // DurationEstimator provides average task duration for a project.

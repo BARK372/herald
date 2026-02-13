@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/kolapsis/herald/internal/config"
+	"github.com/btouchard/herald/internal/config"
 )
 
 // Manager loads and manages configured projects.

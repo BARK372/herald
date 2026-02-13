@@ -8,7 +8,7 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 
-	"github.com/kolapsis/herald/internal/task"
+	"github.com/btouchard/herald/internal/task"
 )
 
 // HeraldPush returns a handler that registers a Claude Code session as a linked task.

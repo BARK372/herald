@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kolapsis/herald/internal/config"
+	"github.com/btouchard/herald/internal/config"
 )
 
 // OAuthServer implements OAuth 2.1 with PKCE for Claude Chat Custom Connectors.
@@ -104,8 +104,8 @@ func (s *OAuthServer) HandleMetadata(w http.ResponseWriter, r *http.Request) {
 // GET /.well-known/oauth-protected-resource
 func (s *OAuthServer) HandleProtectedResourceMetadata(w http.ResponseWriter, r *http.Request) {
 	metadata := map[string]interface{}{
-		"resource":                s.publicURL + "/mcp",
-		"authorization_servers":   []string{s.publicURL},
+		"resource":                 s.publicURL + "/mcp",
+		"authorization_servers":    []string{s.publicURL},
 		"bearer_methods_supported": []string{"header"},
 	}
 

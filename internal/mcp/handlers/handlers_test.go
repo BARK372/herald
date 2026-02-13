@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/kolapsis/herald/internal/task"
+	"github.com/btouchard/herald/internal/task"
 )
 
 // --- CheckTask tests ---

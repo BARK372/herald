@@ -9,16 +9,16 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/kolapsis/herald/internal/executor"
+	"github.com/btouchard/herald/internal/executor"
 )
 
 // mockExecutor simulates Claude Code execution for testing.
 type mockExecutor struct {
-	delay   time.Duration
-	output  string
-	cost    float64
-	turns   int
-	err     error
+	delay  time.Duration
+	output string
+	cost   float64
+	turns  int
+	err    error
 }
 
 func (m *mockExecutor) Execute(ctx context.Context, req executor.Request, onProgress executor.ProgressFunc) (*executor.Result, error) {

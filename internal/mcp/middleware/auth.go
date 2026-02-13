@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/kolapsis/herald/internal/auth"
+	"github.com/btouchard/herald/internal/auth"
 )
 
 // BearerAuth returns middleware that validates OAuth 2.1 Bearer tokens.

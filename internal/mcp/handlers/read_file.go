@@ -10,7 +10,7 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 
-	"github.com/kolapsis/herald/internal/project"
+	"github.com/btouchard/herald/internal/project"
 )
 
 const maxFileSize = 1024 * 1024 // 1MB

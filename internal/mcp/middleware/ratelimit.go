@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/kolapsis/herald/internal/config"
+	"github.com/btouchard/herald/internal/config"
 )
 
 // tokenBucket implements a simple token bucket rate limiter.

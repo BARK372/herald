@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/kolapsis/herald/internal/config"
-	"github.com/kolapsis/herald/internal/project"
+	"github.com/btouchard/herald/internal/config"
+	"github.com/btouchard/herald/internal/project"
 )
 
 func TestListProjects_WhenNoProjects_ReturnsMessage(t *testing.T) {

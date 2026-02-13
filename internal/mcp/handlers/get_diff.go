@@ -8,9 +8,9 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 
-	"github.com/kolapsis/herald/internal/git"
-	"github.com/kolapsis/herald/internal/project"
-	"github.com/kolapsis/herald/internal/task"
+	"github.com/btouchard/herald/internal/git"
+	"github.com/btouchard/herald/internal/project"
+	"github.com/btouchard/herald/internal/task"
 )
 
 // GetDiff returns a handler that shows git diff.

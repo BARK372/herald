@@ -10,7 +10,7 @@
 <p align="center">
   <a href="https://go.dev"><img src="https://img.shields.io/badge/Go-1.26+-00ADD8?logo=go&logoColor=white" alt="Go 1.26+"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0-blue.svg" alt="AGPL-3.0 License"></a>
-  <a href="https://github.com/kolapsis/herald/stargazers"><img src="https://img.shields.io/github/stars/kolapsis/herald?style=social" alt="GitHub Stars"></a>
+  <a href="https://github.com/btouchard/herald/stargazers"><img src="https://img.shields.io/github/stars/btouchard/herald?style=social" alt="GitHub Stars"></a>
 </p>
 
 <p align="center">
@@ -20,7 +20,7 @@
   <a href="#-security">Security</a> &middot;
   <a href="#-roadmap">Roadmap</a>
   <br />
-  <a href="README_FR.md">Version française</a>
+  🇫🇷 <a href="README_FR.md">Version française</a>
 </p>
 
 ---
@@ -157,7 +157,7 @@ You (phone, later)         Claude Chat                Herald
 
 ```bash
 # Build
-git clone https://github.com/kolapsis/herald.git
+git clone https://github.com/btouchard/herald.git
 cd herald && make build
 
 # Configure
@@ -370,14 +370,13 @@ services:
 
 ## Roadmap
 
-| Version | Status | Focus |
-|---|---|---|
-| **v0.1** | :white_check_mark: Done | Core MCP server, async tasks, Git integration, OAuth 2.1, SQLite |
-| **v0.2** | :construction: In progress | Shared memory — bidirectional context between Claude Chat and Claude Code |
-| **v0.3** | :clipboard: Planned | Real-time monitoring (web UI — long-term) |
-| **v1.0** | :rocket: Future | Stable API, plugin system |
+| Version  | Status | Focus |
+|----------|---|---|
+| **v0.1** | ✅ Done | Core MCP server, async tasks, Git integration, OAuth 2.1, SQLite |
+| **v0.2** | 🚧 In progress | Shared memory — bidirectional context between Claude Chat and Claude Code |
+| **v0.3** | 🚀 Future | Stable API, plugin system |
 
-Have an idea? [Open an issue](https://github.com/kolapsis/herald/issues). We build what users need.
+Have an idea? [Open an issue](https://github.com/btouchard/herald/issues). We build what users need.
 
 ## Contributing
 
@@ -385,7 +384,7 @@ Herald is in early alpha — the best time to shape a project.
 
 ```bash
 # Get started
-git clone https://github.com/kolapsis/herald.git
+git clone https://github.com/btouchard/herald.git
 cd herald
 make build && make test
 
@@ -419,7 +418,7 @@ Herald uses the same protocol Anthropic built for their own integrations. No rev
 ---
 
 <p align="center">
-  <a href="LICENSE"><strong>AGPL-3.0 License</strong></a> — Built by <a href="https://github.com/kolapsis"><strong>Kolapsis</strong></a>
+  <a href="LICENSE"><strong>AGPL-3.0 License</strong></a> — Built by <a href="https://kolapsis.com"><strong>Benjamin Touchard</strong></a>
   <br /><br />
-  If Herald saves you time, <a href="https://github.com/kolapsis/herald">leave a star</a>. It helps others find the project.
+  If Herald saves you time, <a href="https://github.com/btouchard/herald">leave a star</a>. It helps others find the project.
 </p>

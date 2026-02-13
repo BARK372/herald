@@ -3,10 +3,10 @@ package mcp
 import (
 	"github.com/mark3labs/mcp-go/server"
 
-	"github.com/kolapsis/herald/internal/config"
-	"github.com/kolapsis/herald/internal/mcp/handlers"
-	"github.com/kolapsis/herald/internal/project"
-	"github.com/kolapsis/herald/internal/task"
+	"github.com/btouchard/herald/internal/config"
+	"github.com/btouchard/herald/internal/mcp/handlers"
+	"github.com/btouchard/herald/internal/project"
+	"github.com/btouchard/herald/internal/task"
 )
 
 // Deps holds shared dependencies injected into MCP handlers.

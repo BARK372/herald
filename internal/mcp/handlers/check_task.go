@@ -9,12 +9,12 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 
-	"github.com/kolapsis/herald/internal/task"
+	"github.com/btouchard/herald/internal/task"
 )
 
 const (
-	longPollInterval  = 500 * time.Millisecond
-	longPollMaxWait   = 30
+	longPollInterval = 500 * time.Millisecond
+	longPollMaxWait  = 30
 )
 
 // CheckTask returns a handler that reports a task's current status.

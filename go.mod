@@ -1,4 +1,4 @@
-module github.com/kolapsis/herald
+module github.com/btouchard/herald
 
 go 1.26.0
 

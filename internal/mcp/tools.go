@@ -4,7 +4,7 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 
-	"github.com/kolapsis/herald/internal/mcp/handlers"
+	"github.com/btouchard/herald/internal/mcp/handlers"
 )
 
 func registerTools(s *server.MCPServer, deps *Deps) {

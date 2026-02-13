@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/kolapsis/herald/internal/executor"
+	"github.com/btouchard/herald/internal/executor"
 )
 
 // TaskEvent represents a task state change for notification dispatch.
