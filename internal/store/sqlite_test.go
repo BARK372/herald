@@ -2,6 +2,8 @@ package store
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -325,6 +327,45 @@ func TestSQLiteStore_GetAverageTaskDuration_WhenNoHistory_ReturnsZero(t *testing
 	require.NoError(t, err)
 	assert.Equal(t, time.Duration(0), avg)
 	assert.Equal(t, 0, count)
+}
+
+func TestNewSQLiteStore_SetsFilePermissions(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	dbPath := filepath.Join(dir, "subdir", "test.db")
+
+	s, err := NewSQLiteStore(dbPath)
+	require.NoError(t, err)
+	defer func() { _ = s.Close() }()
+
+	// Check directory permissions
+	dirInfo, err := os.Stat(filepath.Join(dir, "subdir"))
+	require.NoError(t, err)
+	assert.Equal(t, os.FileMode(0700), dirInfo.Mode().Perm(), "directory should be 0700")
+
+	// Check file permissions
+	fileInfo, err := os.Stat(dbPath)
+	require.NoError(t, err)
+	assert.Equal(t, os.FileMode(0600), fileInfo.Mode().Perm(), "database file should be 0600")
+}
+
+func TestNewSQLiteStore_FixesLoosePermissions(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	dbPath := filepath.Join(dir, "loose.db")
+
+	// Create file with overly permissive mode
+	require.NoError(t, os.WriteFile(dbPath, nil, 0644))
+
+	s, err := NewSQLiteStore(dbPath)
+	require.NoError(t, err)
+	defer func() { _ = s.Close() }()
+
+	info, err := os.Stat(dbPath)
+	require.NoError(t, err)
+	assert.Equal(t, os.FileMode(0600), info.Mode().Perm(), "permissions should be tightened to 0600")
 }
 
 func TestSQLiteStore_GetAverageTaskDuration_WhenHistory_ReturnsAverage(t *testing.T) {
