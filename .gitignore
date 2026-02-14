@@ -49,3 +49,5 @@ PLAN.md
 /docs/internal/E2E_TEST_PLAN.md
 /HERALD_RUN_SPEC.md
 /internal/store/:memory:
+/.mcpregistry_github_token
+/.mcpregistry_registry_token
