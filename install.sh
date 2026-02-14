@@ -6,8 +6,55 @@ INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
 BINARY="herald"
 CONFIG_DIR="${HOME}/.config/herald"
 CONFIG_FILE="${CONFIG_DIR}/herald.yaml"
+LOCAL_MODE=""
 
 main() {
+    parse_args "$@"
+
+    if [ "$LOCAL_MODE" = "1" ]; then
+        main_local
+    else
+        main_remote
+    fi
+
+    if ask_yn "Run setup wizard" "y"; then
+        setup_wizard
+    else
+        printf "\nTo configure manually, see: https://github.com/%s/blob/main/configs/herald.example.yaml\n" "$REPO"
+    fi
+}
+
+parse_args() {
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --local) LOCAL_MODE="1" ;;
+            *) printf "Unknown option: %s\nUsage: install.sh [--local]\n" "$1" >&2; exit 1 ;;
+        esac
+        shift
+    done
+}
+
+main_local() {
+    script_dir="$(cd "$(dirname "$0")" && pwd)"
+    local_bin="${script_dir}/bin/${BINARY}"
+
+    if [ ! -f "$local_bin" ]; then
+        printf "Local binary not found: %s\n" "$local_bin" >&2
+        printf "Run 'make build' first.\n" >&2
+        exit 1
+    fi
+
+    version="$("$local_bin" --version 2>/dev/null || echo "dev")"
+    printf "Installing %s %s from local build...\n" "$BINARY" "$version"
+
+    printf "Installing to %s...\n" "$INSTALL_DIR"
+    cp "$local_bin" "$local_bin.tmp"
+    install_binary "$local_bin.tmp" "$INSTALL_DIR/$BINARY"
+
+    printf "\n✓ %s %s installed at %s/%s\n\n" "$BINARY" "$version" "$INSTALL_DIR" "$BINARY"
+}
+
+main_remote() {
     os="$(detect_os)"
     arch="$(detect_arch)"
     version="$(fetch_latest_version)"
@@ -132,7 +179,11 @@ setup_wizard() {
     printf "\n=== Herald Setup Wizard ===\n\n"
 
     if [ -f "$CONFIG_FILE" ]; then
-        if ! ask_yn "Config already exists at $CONFIG_FILE. Overwrite" "n"; then
+        backup="${CONFIG_FILE}.$(date +%Y%m%d%H%M%S).bak"
+        if ask_yn "Config already exists at $CONFIG_FILE. Back up and overwrite" "y"; then
+            cp "$CONFIG_FILE" "$backup"
+            printf "  Backed up to %s\n\n" "$backup"
+        else
             printf "Setup cancelled.\n"
             return
         fi
@@ -289,4 +340,4 @@ EOF
     printf "  Client Secret: shown at startup\n\n"
 }
 
-main
+main "$@"
