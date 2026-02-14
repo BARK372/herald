@@ -290,6 +290,7 @@ auth:
   redirect_uris:
     - "https://claude.ai/oauth/callback"
     - "https://claude.ai/api/oauth/callback"
+    - "https://claude.ai/api/mcp/auth_callback"
 
 database:
   path: "~/.config/herald/herald.db"

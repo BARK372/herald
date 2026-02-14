@@ -93,6 +93,11 @@ func Defaults() *Config {
 			ClientID:        "herald-claude-chat",
 			AccessTokenTTL:  1 * time.Hour,
 			RefreshTokenTTL: 30 * 24 * time.Hour,
+			RedirectURIs: []string{
+				"https://claude.ai/oauth/callback",
+				"https://claude.ai/api/oauth/callback",
+				"https://claude.ai/api/mcp/auth_callback",
+			},
 		},
 		Database: DatabaseConfig{
 			Path:          "~/.config/herald/herald.db",
