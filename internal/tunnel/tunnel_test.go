@@ -1,6 +1,7 @@
 package tunnel
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -41,6 +42,15 @@ func TestNgrokTunnel_Close_BeforeStart(t *testing.T) {
 
 	err := tun.Close()
 	assert.NoError(t, err, "closing unstarted tunnel should not error")
+}
+
+func TestNgrokTunnel_Start_EmptyToken(t *testing.T) {
+	t.Parallel()
+
+	tun := NewNgrok("", "")
+	_, err := tun.Start(context.Background(), "127.0.0.1:8420")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "auth token is required")
 }
 
 // Note: We do NOT test actual ngrok connection here as that requires a real token

@@ -57,7 +57,19 @@ func (n *NgrokTunnel) Start(ctx context.Context, localAddr string) (string, erro
 		ngroklib.WithAuthtoken(n.authToken),
 	)
 	if err != nil {
-		return "", fmt.Errorf("failed to create ngrok tunnel: %w", err)
+		errMsg := err.Error()
+		switch {
+		case strings.Contains(errMsg, "ERR_NGROK_108") || strings.Contains(errMsg, "already bound"):
+			return "", fmt.Errorf("ngrok domain '%s' is already in use by another session — stop the other session first or remove 'domain' from config for a random URL", n.domain)
+		case strings.Contains(errMsg, "ERR_NGROK_105") || strings.Contains(errMsg, "invalid authtoken"):
+			return "", fmt.Errorf("invalid ngrok auth token — verify your token at https://dashboard.ngrok.com")
+		case strings.Contains(errMsg, "ERR_NGROK_107") || strings.Contains(errMsg, "tunnel session limit"):
+			return "", fmt.Errorf("ngrok session limit reached — free plans allow 1 tunnel; upgrade at ngrok.com or stop other tunnels")
+		case strings.Contains(errMsg, "ERR_NGROK_120") || strings.Contains(errMsg, "not found"):
+			return "", fmt.Errorf("ngrok domain '%s' not found — verify the domain exists in your ngrok dashboard", n.domain)
+		default:
+			return "", fmt.Errorf("ngrok tunnel failed: %w", err)
+		}
 	}
 
 	n.listener = listener
