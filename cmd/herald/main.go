@@ -193,12 +193,13 @@ func printBanner(cfg *config.Config, tunnelURL string) {
 	}
 
 	// Custom Connector setup
-	mcpURL := ""
-	if tunnelURL != "" {
+	var mcpURL string
+	switch {
+	case tunnelURL != "":
 		mcpURL = tunnelURL + "/mcp"
-	} else if cfg.Server.PublicURL != "" {
+	case cfg.Server.PublicURL != "":
 		mcpURL = cfg.Server.PublicURL + "/mcp"
-	} else {
+	default:
 		mcpURL = fmt.Sprintf("http://%s/mcp", addr)
 	}
 
@@ -394,10 +395,17 @@ func run(ctx context.Context, cfg *config.Config) error {
 	}()
 
 	// Start tunnel server (if tunnel was established)
+	var tunnelSrv *http.Server
 	if tun != nil && tunnelURL != "" {
+		tunnelSrv = &http.Server{
+			Handler:      r,
+			ReadTimeout:  30 * time.Second,
+			WriteTimeout: 5 * time.Minute,
+			IdleTimeout:  2 * time.Minute,
+		}
 		go func() {
 			slog.Info("starting tunnel server", "public_url", tunnelURL)
-			if err := http.Serve(tun.Listener(), r); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			if err := tunnelSrv.Serve(tun.Listener()); err != nil && !errors.Is(err, http.ErrServerClosed) {
 				errCh <- fmt.Errorf("tunnel server: %w", err)
 			}
 		}()
@@ -425,9 +433,16 @@ func run(ctx context.Context, cfg *config.Config) error {
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
+	if tunnelSrv != nil {
+		if err := tunnelSrv.Shutdown(shutdownCtx); err != nil {
+			slog.Warn("tunnel graceful shutdown timed out, forcing close", "error", err)
+			_ = tunnelSrv.Close()
+		}
+	}
+
 	if err := srv.Shutdown(shutdownCtx); err != nil {
 		slog.Warn("graceful shutdown timed out, forcing close", "error", err)
-		srv.Close()
+		_ = srv.Close()
 	}
 
 	return nil
