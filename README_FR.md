@@ -362,15 +362,15 @@ Herald expose Claude Code sur le reseau. On prend ca au serieux.
 
 ```
 Claude Chat (mobile/web)
-  -> HTTPS (MCP Streamable HTTP + OAuth 2.1)
-  -> Traefik / Caddy (terminaison TLS)
-  -> Herald (binaire Go, port 8420)
-    |-- Handler MCP (/mcp)
-    |-- Serveur OAuth 2.1 (PKCE, rotation des tokens)
-    |-- Gestionnaire de taches (pool de goroutines, file de priorite)
-    |-- Executeur Claude Code (os/exec, parsing stream-json)
-    |-- SQLite (persistance)
-    '-- Notifications MCP (push serveur via SSE)
+  → HTTPS (MCP Streamable HTTP + OAuth 2.1)
+  → Traefik / Caddy (terminaison TLS)
+  → Herald (binaire Go, port 8420)
+    ├── Handler MCP (/mcp)
+    ├── Serveur OAuth 2.1 (PKCE, rotation des tokens)
+    ├── Gestionnaire de taches (pool de goroutines, file de priorite)
+    ├── Registre d'executeurs (backends pluggables, defaut : Claude Code)
+    ├── SQLite (persistance)
+    └── Notifications MCP (push serveur via SSE)
 ```
 
 **Principes** : binaire unique (tout compile dans un seul executable Go), async-first (chaque tache est une goroutine), MCP stateless avec backend stateful, fail-safe (un crash de Herald ne tue pas les processus Claude Code en cours).
