@@ -56,8 +56,8 @@ func TestHandleMetadata_ReturnsCorrectEndpoints(t *testing.T) {
 	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &meta))
 
 	assert.Equal(t, "https://herald.test", meta["issuer"])
-	assert.Equal(t, "https://herald.test/oauth/authorize", meta["authorization_endpoint"])
-	assert.Equal(t, "https://herald.test/oauth/token", meta["token_endpoint"])
+	assert.Equal(t, "https://herald.test/authorize", meta["authorization_endpoint"])
+	assert.Equal(t, "https://herald.test/token", meta["token_endpoint"])
 }
 
 func TestOAuthFlow_AuthorizeAndToken(t *testing.T) {

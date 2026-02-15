@@ -88,8 +88,8 @@ func (s *OAuthServer) Secret() []byte {
 func (s *OAuthServer) HandleMetadata(w http.ResponseWriter, r *http.Request) {
 	metadata := map[string]interface{}{
 		"issuer":                                s.publicURL,
-		"authorization_endpoint":                s.publicURL + "/oauth/authorize",
-		"token_endpoint":                        s.publicURL + "/oauth/token",
+		"authorization_endpoint":                s.publicURL + "/authorize",
+		"token_endpoint":                        s.publicURL + "/token",
 		"response_types_supported":              []string{"code"},
 		"grant_types_supported":                 []string{"authorization_code", "refresh_token"},
 		"code_challenge_methods_supported":      []string{"S256"},

@@ -62,6 +62,7 @@ type Task struct {
 	Type           Type
 	Project        string
 	Prompt         string
+	Context        string // human-readable intent behind the task (for tracking across sessions)
 	Status         Status
 	Priority       Priority
 	Model          string
@@ -102,7 +103,7 @@ func GenerateID() string {
 
 // New creates a new Task with the given parameters.
 // maxOutputSize limits the in-memory output buffer (0 = unlimited).
-func New(project, prompt string, priority Priority, timeoutMinutes, maxOutputSize int) *Task {
+func New(project, prompt, context string, priority Priority, timeoutMinutes, maxOutputSize int) *Task {
 	if priority == "" {
 		priority = PriorityNormal
 	}
@@ -115,6 +116,7 @@ func New(project, prompt string, priority Priority, timeoutMinutes, maxOutputSiz
 		Type:           TypeDispatched,
 		Project:        project,
 		Prompt:         prompt,
+		Context:        context,
 		Status:         StatusPending,
 		Priority:       priority,
 		TimeoutMinutes: timeoutMinutes,
@@ -278,6 +280,7 @@ func (t *Task) Snapshot() TaskSnapshot {
 		Type:           t.Type,
 		Project:        t.Project,
 		Prompt:         t.Prompt,
+		Context:        t.Context,
 		Status:         t.Status,
 		Priority:       t.Priority,
 		Model:          t.Model,
@@ -306,6 +309,7 @@ type TaskSnapshot struct {
 	Type           Type
 	Project        string
 	Prompt         string
+	Context        string
 	Status         Status
 	Priority       Priority
 	Model          string

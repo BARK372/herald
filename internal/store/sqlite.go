@@ -95,11 +95,11 @@ func (s *SQLiteStore) Close() error {
 // --- Tasks ---
 
 func (s *SQLiteStore) CreateTask(t *TaskRecord) error {
-	_, err := s.db.Exec(`INSERT INTO tasks (id, type, project, prompt, status, priority, session_id, pid,
+	_, err := s.db.Exec(`INSERT INTO tasks (id, type, project, prompt, context, status, priority, session_id, pid,
 		git_branch, output, progress, error, cost_usd, turns, timeout_minutes, dry_run,
 		created_at, started_at, completed_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		t.ID, t.Type, t.Project, t.Prompt, t.Status, t.Priority, t.SessionID, t.PID,
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		t.ID, t.Type, t.Project, t.Prompt, t.Context, t.Status, t.Priority, t.SessionID, t.PID,
 		t.GitBranch, t.Output, t.Progress, t.Error, t.CostUSD, t.Turns,
 		t.TimeoutMinutes, boolToInt(t.DryRun),
 		formatTime(t.CreatedAt), formatTime(t.StartedAt), formatTime(t.CompletedAt))

@@ -354,8 +354,8 @@ func run(ctx context.Context, cfg *config.Config) error {
 	r.Group(func(r chi.Router) {
 		r.Use(oauthLimiter)
 		r.Get("/.well-known/oauth-authorization-server", oauth.HandleMetadata)
-		r.Get("/oauth/authorize", oauth.HandleAuthorize)
-		r.Post("/oauth/token", oauth.HandleToken)
+		r.Get("/authorize", oauth.HandleAuthorize)
+		r.Post("/token", oauth.HandleToken)
 	})
 
 	// MCP endpoint (rate limited + Bearer token required)

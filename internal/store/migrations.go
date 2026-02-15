@@ -71,4 +71,7 @@ var migrations = []string{
 	// Migration 2: Add type column to tasks for herald_push (linked tasks)
 	`ALTER TABLE tasks ADD COLUMN type TEXT NOT NULL DEFAULT 'dispatched';
 	CREATE INDEX IF NOT EXISTS idx_tasks_session_id ON tasks(session_id);`,
+
+	// Migration 3: Add context column for human-readable task intent
+	`ALTER TABLE tasks ADD COLUMN context TEXT NOT NULL DEFAULT '';`,
 }

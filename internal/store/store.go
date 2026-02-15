@@ -41,6 +41,7 @@ type TaskRecord struct {
 	Type           string
 	Project        string
 	Prompt         string
+	Context        string
 	Status         string
 	Priority       string
 	SessionID      string
