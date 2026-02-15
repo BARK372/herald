@@ -36,6 +36,8 @@ type DatabaseConfig struct {
 }
 
 type ExecutionConfig struct {
+	// Executor selects the CLI backend. Defaults to "claude-code".
+	Executor       string            `yaml:"executor"`
 	ClaudePath     string            `yaml:"claude_path"`
 	Model          string            `yaml:"model"`
 	DefaultTimeout time.Duration     `yaml:"default_timeout"`
@@ -104,6 +106,7 @@ func Defaults() *Config {
 			RetentionDays: 90,
 		},
 		Execution: ExecutionConfig{
+			Executor:       "claude-code",
 			ClaudePath:     "claude",
 			Model:          "claude-sonnet-4-5-20250929",
 			DefaultTimeout: 30 * time.Minute,

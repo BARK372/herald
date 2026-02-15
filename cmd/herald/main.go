@@ -20,6 +20,7 @@ import (
 	"github.com/btouchard/herald/internal/auth"
 	"github.com/btouchard/herald/internal/config"
 	"github.com/btouchard/herald/internal/executor"
+	_ "github.com/btouchard/herald/internal/executor/claude" // registers claude-code executor
 	heraldmcp "github.com/btouchard/herald/internal/mcp"
 	authmw "github.com/btouchard/herald/internal/mcp/middleware"
 	"github.com/btouchard/herald/internal/notify"
@@ -278,11 +279,23 @@ func run(ctx context.Context, cfg *config.Config) error {
 	}
 
 	// --- Executor ---
-	exec := &executor.ClaudeExecutor{
-		ClaudePath: cfg.Execution.ClaudePath,
-		WorkDir:    cfg.Execution.WorkDir,
-		Env:        cfg.Execution.Env,
+	executorName := cfg.Execution.Executor
+	if executorName == "" {
+		executorName = "claude-code"
 	}
+	factory, ok := executor.Get(executorName)
+	if !ok {
+		return fmt.Errorf("unknown executor %q (available: %v)", executorName, executor.Available())
+	}
+	exec, err := factory(map[string]any{
+		"claude_path": cfg.Execution.ClaudePath,
+		"work_dir":    cfg.Execution.WorkDir,
+		"env":         cfg.Execution.Env,
+	})
+	if err != nil {
+		return fmt.Errorf("creating executor %q: %w", executorName, err)
+	}
+	slog.Info("executor loaded", "name", executorName, "capabilities", exec.Capabilities())
 
 	// --- Task Manager ---
 	tm := task.NewManager(exec, cfg.Execution.MaxConcurrent, cfg.Execution.MaxTimeout)

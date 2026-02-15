@@ -1,4 +1,4 @@
-package executor
+package claude
 
 import (
 	"bufio"
@@ -12,22 +12,53 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/btouchard/herald/internal/executor"
 )
 
-// ClaudeExecutor runs tasks via the Claude Code CLI.
-type ClaudeExecutor struct {
+func init() {
+	executor.Register("claude-code", func(cfg map[string]any) (executor.Executor, error) {
+		claudePath, _ := cfg["claude_path"].(string)
+		if claudePath == "" {
+			claudePath = "claude"
+		}
+		workDir, _ := cfg["work_dir"].(string)
+		env, _ := cfg["env"].(map[string]string)
+		return &Executor{
+			ClaudePath: claudePath,
+			WorkDir:    workDir,
+			Env:        env,
+		}, nil
+	})
+}
+
+// Executor runs tasks via the Claude Code CLI.
+type Executor struct {
 	ClaudePath string
 	WorkDir    string
 	Env        map[string]string
 }
 
-func (e *ClaudeExecutor) Execute(ctx context.Context, req Request, onProgress ProgressFunc) (*Result, error) {
+// Capabilities returns the feature set supported by Claude Code.
+func (e *Executor) Capabilities() executor.Capabilities {
+	return executor.Capabilities{
+		SupportsSession:  true,
+		SupportsModel:    true,
+		SupportsToolList: true,
+		SupportsDryRun:   true,
+		SupportsStreaming: true,
+		Name:             "claude-code",
+		Version:          "1.0.0",
+	}
+}
+
+func (e *Executor) Execute(ctx context.Context, req executor.Request, onProgress executor.ProgressFunc) (*executor.Result, error) {
 	// Write prompt to file (avoids CLI arg length limits)
-	promptPath, err := WritePromptFile(e.WorkDir, req.TaskID, req.Prompt)
+	promptPath, err := executor.WritePromptFile(e.WorkDir, req.TaskID, req.Prompt)
 	if err != nil {
 		return nil, fmt.Errorf("writing prompt: %w", err)
 	}
-	defer CleanupPromptFile(e.WorkDir, req.TaskID)
+	defer executor.CleanupPromptFile(e.WorkDir, req.TaskID)
 
 	// Build command arguments
 	args := []string{
@@ -104,15 +135,15 @@ func (e *ClaudeExecutor) Execute(ctx context.Context, req Request, onProgress Pr
 	// Parse stream-json output in background goroutines.
 	// All pipe readers must finish before cmd.Wait() which closes the pipes.
 	var wg sync.WaitGroup
-	result := &Result{}
+	result := &executor.Result{}
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
-		e.parseStream(req.TaskID, stdout, result, onProgress)
+		parseStream(req.TaskID, stdout, result, onProgress)
 	}()
 	go func() {
 		defer wg.Done()
-		e.captureStderr(req.TaskID, stderr)
+		captureStderr(req.TaskID, stderr)
 	}()
 
 	// Drain all pipes first, then reap the process
@@ -141,7 +172,7 @@ func (e *ClaudeExecutor) Execute(ctx context.Context, req Request, onProgress Pr
 	return result, nil
 }
 
-func (e *ClaudeExecutor) parseStream(taskID string, r io.Reader, result *Result, onProgress ProgressFunc) {
+func parseStream(taskID string, r io.Reader, result *executor.Result, onProgress executor.ProgressFunc) {
 	scanner := bufio.NewScanner(r)
 	scanner.Buffer(make([]byte, 0, 1024*1024), 10*1024*1024) // 10MB max line
 
@@ -187,7 +218,7 @@ func (e *ClaudeExecutor) parseStream(taskID string, r io.Reader, result *Result,
 	}
 }
 
-func (e *ClaudeExecutor) captureStderr(taskID string, r io.Reader) {
+func captureStderr(taskID string, r io.Reader) {
 	data, err := io.ReadAll(r)
 	if err != nil {
 		slog.Debug("stderr read error", "task_id", taskID, "error", err)
@@ -198,23 +229,9 @@ func (e *ClaudeExecutor) captureStderr(taskID string, r io.Reader) {
 	}
 }
 
-// GracefulKill sends SIGTERM to the process group, waits, then SIGKILL if still alive.
-func GracefulKill(pid int) {
-	// Send SIGTERM to process group (negative PID)
-	_ = syscall.Kill(-pid, syscall.SIGTERM)
-
-	done := make(chan struct{})
-	go func() {
-		proc, err := os.FindProcess(pid)
-		if err == nil {
-			_, _ = proc.Wait()
-		}
-		close(done)
-	}()
-
-	select {
-	case <-done:
-	case <-time.After(10 * time.Second):
-		_ = syscall.Kill(-pid, syscall.SIGKILL)
+func truncateStr(s string, max int) string {
+	if len(s) <= max {
+		return s
 	}
+	return s[:max] + "..."
 }

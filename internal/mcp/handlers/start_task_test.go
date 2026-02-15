@@ -17,6 +17,10 @@ import (
 
 type mockExecutor struct{}
 
+func (m *mockExecutor) Capabilities() executor.Capabilities {
+	return executor.Capabilities{Name: "mock"}
+}
+
 func (m *mockExecutor) Execute(_ context.Context, _ executor.Request, _ executor.ProgressFunc) (*executor.Result, error) {
 	return &executor.Result{Output: "done"}, nil
 }

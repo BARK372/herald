@@ -1,4 +1,4 @@
-package executor
+package claude
 
 import (
 	"strings"
@@ -6,6 +6,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/btouchard/herald/internal/executor"
 )
 
 func TestParseStreamLine_WhenSystemInit_ExtractsSessionID(t *testing.T) {
@@ -286,14 +288,13 @@ func TestParseStream_FullConversation(t *testing.T) {
 		`{"type":"result","subtype":"success","cost_usd":0.42,"duration_ms":30000,"num_turns":3}`,
 	}, "\n")
 
-	result := &Result{}
+	result := &executor.Result{}
 	var progressMessages []string
 	onProgress := func(eventType, message string) {
 		progressMessages = append(progressMessages, eventType+":"+message)
 	}
 
-	exec := &ClaudeExecutor{}
-	exec.parseStream("test-task", strings.NewReader(stream), result, onProgress)
+	parseStream("test-task", strings.NewReader(stream), result, onProgress)
 
 	assert.Equal(t, "ses_test123", result.SessionID)
 	assert.InDelta(t, 0.42, result.CostUSD, 0.001)
@@ -314,9 +315,8 @@ func TestParseStream_WhenMalformedLines_SkipsThem(t *testing.T) {
 		`{"type":"result","subtype":"success","cost_usd":0.10,"num_turns":1}`,
 	}, "\n")
 
-	result := &Result{}
-	exec := &ClaudeExecutor{}
-	exec.parseStream("test-task", strings.NewReader(stream), result, nil)
+	result := &executor.Result{}
+	parseStream("test-task", strings.NewReader(stream), result, nil)
 
 	assert.Equal(t, "ses_ok", result.SessionID)
 	assert.InDelta(t, 0.10, result.CostUSD, 0.001)
@@ -325,9 +325,8 @@ func TestParseStream_WhenMalformedLines_SkipsThem(t *testing.T) {
 func TestParseStream_WhenEmptyStream_ProducesEmptyResult(t *testing.T) {
 	t.Parallel()
 
-	result := &Result{}
-	exec := &ClaudeExecutor{}
-	exec.parseStream("test-task", strings.NewReader(""), result, nil)
+	result := &executor.Result{}
+	parseStream("test-task", strings.NewReader(""), result, nil)
 
 	assert.Empty(t, result.SessionID)
 	assert.Empty(t, result.Output)
@@ -339,10 +338,9 @@ func TestParseStream_WhenNoProgressFunc_DoesNotPanic(t *testing.T) {
 
 	stream := `{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"hello"}]}}`
 
-	result := &Result{}
-	exec := &ClaudeExecutor{}
+	result := &executor.Result{}
 	require.NotPanics(t, func() {
-		exec.parseStream("test-task", strings.NewReader(stream), result, nil)
+		parseStream("test-task", strings.NewReader(stream), result, nil)
 	})
 	assert.Equal(t, "hello", result.Output)
 }

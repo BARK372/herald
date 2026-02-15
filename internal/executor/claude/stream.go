@@ -1,4 +1,4 @@
-package executor
+package claude
 
 import (
 	"encoding/json"
@@ -82,13 +82,6 @@ func ExtractOutput(event *StreamEvent) string {
 		}
 	}
 	return out
-}
-
-func truncateStr(s string, max int) string {
-	if len(s) <= max {
-		return s
-	}
-	return s[:max] + "..."
 }
 
 func truncateBytes(b []byte, max int) string {

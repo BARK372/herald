@@ -1,4 +1,4 @@
-package executor
+package claude
 
 import (
 	"context"
@@ -10,6 +10,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/btouchard/herald/internal/executor"
 )
 
 // writeTestScript writes a shell script atomically using rename to avoid
@@ -21,6 +23,62 @@ func writeTestScript(t *testing.T, path, content string) {
 	require.NoError(t, os.Rename(tmp, path))
 }
 
+func TestCapabilities_ReturnsExpectedValues(t *testing.T) {
+	t.Parallel()
+
+	exec := &Executor{}
+	caps := exec.Capabilities()
+
+	assert.Equal(t, "claude-code", caps.Name)
+	assert.True(t, caps.SupportsSession)
+	assert.True(t, caps.SupportsModel)
+	assert.True(t, caps.SupportsToolList)
+	assert.True(t, caps.SupportsDryRun)
+	assert.True(t, caps.SupportsStreaming)
+}
+
+func TestRegistration_ClaudeCodeIsAvailable(t *testing.T) {
+	t.Parallel()
+
+	factory, ok := executor.Get("claude-code")
+	assert.True(t, ok, "claude-code should be registered")
+	assert.NotNil(t, factory)
+
+	available := executor.Available()
+	assert.Contains(t, available, "claude-code")
+}
+
+func TestFactory_CreatesExecutorWithDefaults(t *testing.T) {
+	t.Parallel()
+
+	factory, ok := executor.Get("claude-code")
+	require.True(t, ok)
+
+	exec, err := factory(map[string]any{})
+	require.NoError(t, err)
+
+	caps := exec.Capabilities()
+	assert.Equal(t, "claude-code", caps.Name)
+}
+
+func TestFactory_CreatesExecutorWithConfig(t *testing.T) {
+	t.Parallel()
+
+	factory, ok := executor.Get("claude-code")
+	require.True(t, ok)
+
+	exec, err := factory(map[string]any{
+		"claude_path": "/usr/local/bin/claude",
+		"work_dir":    "/tmp/herald",
+	})
+	require.NoError(t, err)
+
+	claudeExec, ok := exec.(*Executor)
+	require.True(t, ok)
+	assert.Equal(t, "/usr/local/bin/claude", claudeExec.ClaudePath)
+	assert.Equal(t, "/tmp/herald", claudeExec.WorkDir)
+}
+
 func TestParseStream_WhenVeryLongLine_HandlesWithoutPanic(t *testing.T) {
 	t.Parallel()
 
@@ -28,10 +86,9 @@ func TestParseStream_WhenVeryLongLine_HandlesWithoutPanic(t *testing.T) {
 	longText := strings.Repeat("a", 1_000_000)
 	line := `{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"` + longText + `"}]}}`
 
-	result := &Result{}
-	exec := &ClaudeExecutor{}
+	result := &executor.Result{}
 	require.NotPanics(t, func() {
-		exec.parseStream("test-task", strings.NewReader(line), result, nil)
+		parseStream("test-task", strings.NewReader(line), result, nil)
 	})
 	assert.Contains(t, result.Output, longText)
 }
@@ -48,12 +105,11 @@ func TestParseStream_WhenMixedValidAndInvalid_ProcessesValidLines(t *testing.T) 
 		`{"type":"result","subtype":"success","cost_usd":0.50,"num_turns":2}`,
 	}, "\n")
 
-	result := &Result{}
+	result := &executor.Result{}
 	var progressCalls int
 	onProgress := func(_, _ string) { progressCalls++ }
 
-	exec := &ClaudeExecutor{}
-	exec.parseStream("test-task", strings.NewReader(stream), result, onProgress)
+	parseStream("test-task", strings.NewReader(stream), result, onProgress)
 
 	assert.Equal(t, "ses_mixed", result.SessionID)
 	assert.Equal(t, "valid output", result.Output)
@@ -72,12 +128,11 @@ func TestParseStream_WhenMultipleAssistantEvents_AccumulatesOutput(t *testing.T)
 		`{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Part 3."}]}}`,
 	}, "\n")
 
-	result := &Result{}
+	result := &executor.Result{}
 	var progressMsgs []string
 	onProgress := func(_, msg string) { progressMsgs = append(progressMsgs, msg) }
 
-	exec := &ClaudeExecutor{}
-	exec.parseStream("test-task", strings.NewReader(stream), result, onProgress)
+	parseStream("test-task", strings.NewReader(stream), result, onProgress)
 
 	assert.Equal(t, "Part 1. Part 2. Part 3.", result.Output)
 	assert.Len(t, progressMsgs, 4) // 3 text events + 1 tool_use
@@ -89,9 +144,8 @@ func TestParseStream_WhenSystemNotInit_IgnoresSessionID(t *testing.T) {
 
 	stream := `{"type":"system","subtype":"heartbeat","session_id":"should_not_be_captured"}`
 
-	result := &Result{}
-	exec := &ClaudeExecutor{}
-	exec.parseStream("test-task", strings.NewReader(stream), result, nil)
+	result := &executor.Result{}
+	parseStream("test-task", strings.NewReader(stream), result, nil)
 
 	assert.Empty(t, result.SessionID)
 }
@@ -101,9 +155,8 @@ func TestParseStream_WhenResultHasDuration_SetsDuration(t *testing.T) {
 
 	stream := `{"type":"result","subtype":"success","cost_usd":0.10,"duration_ms":60000,"num_turns":3}`
 
-	result := &Result{}
-	exec := &ClaudeExecutor{}
-	exec.parseStream("test-task", strings.NewReader(stream), result, nil)
+	result := &executor.Result{}
+	parseStream("test-task", strings.NewReader(stream), result, nil)
 
 	assert.Equal(t, 60*time.Second, result.Duration)
 }
@@ -113,9 +166,8 @@ func TestParseStream_WhenResultNoDuration_KeepsZero(t *testing.T) {
 
 	stream := `{"type":"result","subtype":"success","cost_usd":0.05,"num_turns":1}`
 
-	result := &Result{}
-	exec := &ClaudeExecutor{}
-	exec.parseStream("test-task", strings.NewReader(stream), result, nil)
+	result := &executor.Result{}
+	parseStream("test-task", strings.NewReader(stream), result, nil)
 
 	assert.Equal(t, time.Duration(0), result.Duration)
 }
@@ -130,9 +182,8 @@ func TestParseStream_WhenWhitespaceOnlyLines_SkipsThem(t *testing.T) {
 		`{"type":"result","subtype":"success","cost_usd":0.01}`,
 	}, "\n")
 
-	result := &Result{}
-	exec := &ClaudeExecutor{}
-	exec.parseStream("test-task", strings.NewReader(stream), result, nil)
+	result := &executor.Result{}
+	parseStream("test-task", strings.NewReader(stream), result, nil)
 
 	// Whitespace-only lines get parsed as malformed JSON (not empty), but should not crash
 	assert.Equal(t, "ses_ws", result.SessionID)
@@ -142,18 +193,16 @@ func TestParseStream_WhenWhitespaceOnlyLines_SkipsThem(t *testing.T) {
 func TestCaptureStderr_WhenDataPresent_DoesNotPanic(t *testing.T) {
 	t.Parallel()
 
-	exec := &ClaudeExecutor{}
 	require.NotPanics(t, func() {
-		exec.captureStderr("test-task", strings.NewReader("warning: something happened"))
+		captureStderr("test-task", strings.NewReader("warning: something happened"))
 	})
 }
 
 func TestCaptureStderr_WhenEmpty_DoesNotPanic(t *testing.T) {
 	t.Parallel()
 
-	exec := &ClaudeExecutor{}
 	require.NotPanics(t, func() {
-		exec.captureStderr("test-task", strings.NewReader(""))
+		captureStderr("test-task", strings.NewReader(""))
 	})
 }
 
@@ -172,12 +221,12 @@ STREAM
 `
 	writeTestScript(t, scriptPath, script)
 
-	exec := &ClaudeExecutor{
+	exec := &Executor{
 		ClaudePath: scriptPath,
 		WorkDir:    tmpDir,
 	}
 
-	req := Request{
+	req := executor.Request{
 		TaskID:      "herald-mock01",
 		Prompt:      "fix the bug",
 		ProjectPath: tmpDir,
@@ -209,12 +258,12 @@ exit 1
 `
 	writeTestScript(t, scriptPath, script)
 
-	exec := &ClaudeExecutor{
+	exec := &Executor{
 		ClaudePath: scriptPath,
 		WorkDir:    tmpDir,
 	}
 
-	req := Request{
+	req := executor.Request{
 		TaskID:      "herald-fail01",
 		Prompt:      "do something",
 		ProjectPath: tmpDir,
@@ -237,12 +286,12 @@ sleep 60
 `
 	writeTestScript(t, scriptPath, script)
 
-	exec := &ClaudeExecutor{
+	exec := &Executor{
 		ClaudePath: scriptPath,
 		WorkDir:    tmpDir,
 	}
 
-	req := Request{
+	req := executor.Request{
 		TaskID:      "herald-cancel01",
 		Prompt:      "slow task",
 		ProjectPath: tmpDir,
@@ -260,18 +309,17 @@ func TestExecute_WhenSessionIDProvided_PassesResumeFlag(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	scriptPath := filepath.Join(tmpDir, "echo_claude.sh")
-	// Script that echoes args to help verify resume flag is passed
 	script := `#!/bin/sh
 echo '{"type":"result","subtype":"success","cost_usd":0.01,"num_turns":1}'
 `
 	writeTestScript(t, scriptPath, script)
 
-	exec := &ClaudeExecutor{
+	exec := &Executor{
 		ClaudePath: scriptPath,
 		WorkDir:    tmpDir,
 	}
 
-	req := Request{
+	req := executor.Request{
 		TaskID:      "herald-resume01",
 		Prompt:      "continue",
 		SessionID:   "ses_existing",
@@ -293,12 +341,12 @@ echo '{"type":"result","subtype":"success","cost_usd":0.01,"num_turns":1}'
 `
 	writeTestScript(t, scriptPath, script)
 
-	exec := &ClaudeExecutor{
+	exec := &Executor{
 		ClaudePath: scriptPath,
 		WorkDir:    tmpDir,
 	}
 
-	req := Request{
+	req := executor.Request{
 		TaskID:       "herald-tools01",
 		Prompt:       "test",
 		ProjectPath:  tmpDir,
@@ -315,13 +363,12 @@ func TestExecute_WhenEnvVarsSet_MergesEnvironment(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	scriptPath := filepath.Join(tmpDir, "env_claude.sh")
-	// Verify env vars are available by checking they exist
 	script := `#!/bin/sh
 echo '{"type":"result","subtype":"success","cost_usd":0.01,"num_turns":1}'
 `
 	writeTestScript(t, scriptPath, script)
 
-	exec := &ClaudeExecutor{
+	exec := &Executor{
 		ClaudePath: scriptPath,
 		WorkDir:    tmpDir,
 		Env: map[string]string{
@@ -329,7 +376,7 @@ echo '{"type":"result","subtype":"success","cost_usd":0.01,"num_turns":1}'
 		},
 	}
 
-	req := Request{
+	req := executor.Request{
 		TaskID:      "herald-env01",
 		Prompt:      "test",
 		ProjectPath: tmpDir,
@@ -354,12 +401,12 @@ echo '{"type":"result","subtype":"success","cost_usd":0.01,"num_turns":1}'
 `
 	writeTestScript(t, scriptPath, script)
 
-	exec := &ClaudeExecutor{
+	exec := &Executor{
 		ClaudePath: scriptPath,
 		WorkDir:    tmpDir,
 	}
 
-	req := Request{
+	req := executor.Request{
 		TaskID:      "herald-stderr01",
 		Prompt:      "test",
 		ProjectPath: tmpDir,
@@ -381,12 +428,12 @@ echo '{"type":"result","subtype":"success","cost_usd":0.01,"num_turns":1}'
 `
 	writeTestScript(t, scriptPath, script)
 
-	exec := &ClaudeExecutor{
+	exec := &Executor{
 		ClaudePath: scriptPath,
 		WorkDir:    tmpDir,
 	}
 
-	req := Request{
+	req := executor.Request{
 		TaskID:      "herald-prog01",
 		Prompt:      "test",
 		ProjectPath: tmpDir,
@@ -408,7 +455,6 @@ func TestExecute_WhenModelProvided_PassesModelFlag(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	scriptPath := filepath.Join(tmpDir, "model_claude.sh")
-	// Script that verifies --model flag is in $@ by checking args
 	script := `#!/bin/sh
 found=0
 for arg in "$@"; do
@@ -424,12 +470,12 @@ echo '{"type":"result","subtype":"success","cost_usd":0.01,"num_turns":1}'
 `
 	writeTestScript(t, scriptPath, script)
 
-	exec := &ClaudeExecutor{
+	exec := &Executor{
 		ClaudePath: scriptPath,
 		WorkDir:    tmpDir,
 	}
 
-	req := Request{
+	req := executor.Request{
 		TaskID:      "herald-model01",
 		Prompt:      "test",
 		ProjectPath: tmpDir,
@@ -447,7 +493,6 @@ func TestExecute_WhenNoModel_DoesNotPassModelFlag(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	scriptPath := filepath.Join(tmpDir, "nomodel_claude.sh")
-	// Script that fails if --model flag is found
 	script := `#!/bin/sh
 for arg in "$@"; do
     if [ "$arg" = "--model" ]; then
@@ -459,12 +504,12 @@ echo '{"type":"result","subtype":"success","cost_usd":0.01,"num_turns":1}'
 `
 	writeTestScript(t, scriptPath, script)
 
-	exec := &ClaudeExecutor{
+	exec := &Executor{
 		ClaudePath: scriptPath,
 		WorkDir:    tmpDir,
 	}
 
-	req := Request{
+	req := executor.Request{
 		TaskID:      "herald-nomodel01",
 		Prompt:      "test",
 		ProjectPath: tmpDir,

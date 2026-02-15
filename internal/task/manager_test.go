@@ -21,6 +21,10 @@ type mockExecutor struct {
 	err    error
 }
 
+func (m *mockExecutor) Capabilities() executor.Capabilities {
+	return executor.Capabilities{Name: "mock"}
+}
+
 func (m *mockExecutor) Execute(ctx context.Context, req executor.Request, onProgress executor.ProgressFunc) (*executor.Result, error) {
 	if onProgress != nil {
 		onProgress("started", fmt.Sprintf("PID %d", 12345))
