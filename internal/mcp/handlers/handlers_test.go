@@ -17,7 +17,7 @@ import (
 func TestCheckTask_WhenTaskExists_ReturnsStatus(t *testing.T) {
 	t.Parallel()
 	tm, _ := newTestDeps()
-	handler := CheckTask(tm)
+	handler := CheckTask(tm, "mock")
 
 	// Create a task via manager
 	tsk := tm.Create("test", "do something", "", task.PriorityNormal, 30)
@@ -34,7 +34,7 @@ func TestCheckTask_WhenTaskExists_ReturnsStatus(t *testing.T) {
 func TestCheckTask_WhenMissingTaskID_ReturnsError(t *testing.T) {
 	t.Parallel()
 	tm, _ := newTestDeps()
-	handler := CheckTask(tm)
+	handler := CheckTask(tm, "mock")
 
 	result, err := handler(context.Background(), makeReq(map[string]any{}))
 	require.NoError(t, err)
@@ -46,7 +46,7 @@ func TestCheckTask_WhenMissingTaskID_ReturnsError(t *testing.T) {
 func TestCheckTask_WhenTaskNotFound_ReturnsError(t *testing.T) {
 	t.Parallel()
 	tm, _ := newTestDeps()
-	handler := CheckTask(tm)
+	handler := CheckTask(tm, "mock")
 
 	result, err := handler(context.Background(), makeReq(map[string]any{
 		"task_id": "herald-nonexist",
@@ -60,7 +60,7 @@ func TestCheckTask_WhenTaskNotFound_ReturnsError(t *testing.T) {
 func TestCheckTask_WhenCompleted_ShowsCostAndTurns(t *testing.T) {
 	t.Parallel()
 	tm, _ := newTestDeps()
-	handler := CheckTask(tm)
+	handler := CheckTask(tm, "mock")
 
 	tsk := tm.Create("test", "do something", "", task.PriorityNormal, 30)
 	tsk.SetStatus(task.StatusRunning)
@@ -84,7 +84,7 @@ func TestCheckTask_WhenCompleted_ShowsCostAndTurns(t *testing.T) {
 func TestCheckTask_WhenIncludeOutput_ShowsOutput(t *testing.T) {
 	t.Parallel()
 	tm, _ := newTestDeps()
-	handler := CheckTask(tm)
+	handler := CheckTask(tm, "mock")
 
 	tsk := tm.Create("test", "do something", "", task.PriorityNormal, 30)
 	tsk.SetStatus(task.StatusRunning)
@@ -107,7 +107,7 @@ func TestCheckTask_WhenIncludeOutput_ShowsOutput(t *testing.T) {
 func TestCheckTask_WhenWaitZero_ReturnsImmediately(t *testing.T) {
 	t.Parallel()
 	tm, _ := newTestDeps()
-	handler := CheckTask(tm)
+	handler := CheckTask(tm, "mock")
 
 	tsk := tm.Create("test", "do something", "", task.PriorityNormal, 30)
 	tsk.SetStatus(task.StatusRunning)
@@ -128,7 +128,7 @@ func TestCheckTask_WhenWaitZero_ReturnsImmediately(t *testing.T) {
 func TestCheckTask_WhenWaitOnCompletedTask_ReturnsImmediately(t *testing.T) {
 	t.Parallel()
 	tm, _ := newTestDeps()
-	handler := CheckTask(tm)
+	handler := CheckTask(tm, "mock")
 
 	tsk := tm.Create("test", "do something", "", task.PriorityNormal, 30)
 	tsk.SetStatus(task.StatusRunning)
@@ -150,7 +150,7 @@ func TestCheckTask_WhenWaitOnCompletedTask_ReturnsImmediately(t *testing.T) {
 func TestCheckTask_WhenWaitAndTaskCompletesDuringWait_ReturnsOnCompletion(t *testing.T) {
 	t.Parallel()
 	tm, _ := newTestDeps()
-	handler := CheckTask(tm)
+	handler := CheckTask(tm, "mock")
 
 	tsk := tm.Create("test", "do something", "", task.PriorityNormal, 30)
 	tsk.SetStatus(task.StatusRunning)
@@ -178,7 +178,7 @@ func TestCheckTask_WhenWaitAndTaskCompletesDuringWait_ReturnsOnCompletion(t *tes
 func TestCheckTask_WhenWaitAndOnlyProgressChanges_WaitsUntilTimeout(t *testing.T) {
 	t.Parallel()
 	tm, _ := newTestDeps()
-	handler := CheckTask(tm)
+	handler := CheckTask(tm, "mock")
 
 	tsk := tm.Create("test", "do something", "", task.PriorityNormal, 30)
 	tsk.SetStatus(task.StatusRunning)
@@ -207,7 +207,7 @@ func TestCheckTask_WhenWaitAndOnlyProgressChanges_WaitsUntilTimeout(t *testing.T
 func TestCheckTask_WhenWaitAndStatusChanges_ReturnsEarly(t *testing.T) {
 	t.Parallel()
 	tm, _ := newTestDeps()
-	handler := CheckTask(tm)
+	handler := CheckTask(tm, "mock")
 
 	tsk := tm.Create("test", "do something", "", task.PriorityNormal, 30)
 	tsk.SetStatus(task.StatusRunning)
@@ -235,7 +235,7 @@ func TestCheckTask_WhenWaitAndStatusChanges_ReturnsEarly(t *testing.T) {
 func TestCheckTask_WhenWaitExceedsMax_ClampsToMax(t *testing.T) {
 	t.Parallel()
 	tm, _ := newTestDeps()
-	handler := CheckTask(tm)
+	handler := CheckTask(tm, "mock")
 
 	tsk := tm.Create("test", "do something", "", task.PriorityNormal, 30)
 	tsk.SetStatus(task.StatusRunning)
@@ -260,7 +260,7 @@ func TestCheckTask_WhenWaitExceedsMax_ClampsToMax(t *testing.T) {
 func TestGetResult_WhenTaskCompleted_ReturnsSummary(t *testing.T) {
 	t.Parallel()
 	tm, _ := newTestDeps()
-	handler := GetResult(tm)
+	handler := GetResult(tm, "mock")
 
 	tsk := tm.Create("test", "fix the bug", "", task.PriorityNormal, 30)
 	tsk.SetStatus(task.StatusRunning)
@@ -282,7 +282,7 @@ func TestGetResult_WhenTaskCompleted_ReturnsSummary(t *testing.T) {
 func TestGetResult_WhenMissingTaskID_ReturnsError(t *testing.T) {
 	t.Parallel()
 	tm, _ := newTestDeps()
-	handler := GetResult(tm)
+	handler := GetResult(tm, "mock")
 
 	result, err := handler(context.Background(), makeReq(map[string]any{}))
 	require.NoError(t, err)
@@ -294,7 +294,7 @@ func TestGetResult_WhenMissingTaskID_ReturnsError(t *testing.T) {
 func TestGetResult_WhenTaskStillRunning_InformsUser(t *testing.T) {
 	t.Parallel()
 	tm, _ := newTestDeps()
-	handler := GetResult(tm)
+	handler := GetResult(tm, "mock")
 
 	tsk := tm.Create("test", "work", "", task.PriorityNormal, 30)
 	tsk.SetStatus(task.StatusRunning)
@@ -311,7 +311,7 @@ func TestGetResult_WhenTaskStillRunning_InformsUser(t *testing.T) {
 func TestGetResult_WhenFormatFull_ReturnsFullOutput(t *testing.T) {
 	t.Parallel()
 	tm, _ := newTestDeps()
-	handler := GetResult(tm)
+	handler := GetResult(tm, "mock")
 
 	tsk := tm.Create("test", "fix", "", task.PriorityNormal, 30)
 	tsk.SetStatus(task.StatusRunning)
@@ -332,7 +332,7 @@ func TestGetResult_WhenFormatFull_ReturnsFullOutput(t *testing.T) {
 func TestGetResult_WhenFormatJSON_ReturnsJSON(t *testing.T) {
 	t.Parallel()
 	tm, _ := newTestDeps()
-	handler := GetResult(tm)
+	handler := GetResult(tm, "mock")
 
 	tsk := tm.Create("test", "fix", "", task.PriorityNormal, 30)
 	tsk.SetStatus(task.StatusRunning)

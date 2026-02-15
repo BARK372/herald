@@ -47,6 +47,15 @@ func newTestDeps() (*task.Manager, *project.Manager) {
 	return tm, pm
 }
 
+var testCaps = executor.Capabilities{
+	SupportsSession:  true,
+	SupportsModel:    true,
+	SupportsToolList: true,
+	SupportsDryRun:   true,
+	SupportsStreaming: true,
+	Name:             "mock",
+}
+
 func makeReq(args map[string]any) mcp.CallToolRequest {
 	return mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
@@ -59,7 +68,7 @@ func TestStartTask_WhenNormalTimeout_AcceptsIt(t *testing.T) {
 	t.Parallel()
 
 	tm, pm := newTestDeps()
-	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", nil)
+	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", testCaps, nil)
 
 	result, err := handler(context.Background(), makeReq(map[string]any{
 		"prompt":          "do something",
@@ -80,7 +89,7 @@ func TestStartTask_WhenTimeoutExceedsMax_ClampsToMax(t *testing.T) {
 	t.Parallel()
 
 	tm, pm := newTestDeps()
-	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", nil) // max = 120 min
+	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", testCaps, nil) // max = 120 min
 
 	result, err := handler(context.Background(), makeReq(map[string]any{
 		"prompt":          "do something",
@@ -112,7 +121,7 @@ func TestStartTask_WhenTimeoutZeroOrNegative_UsesDefault(t *testing.T) {
 			t.Parallel()
 
 			tm, pm := newTestDeps()
-			handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", nil)
+			handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", testCaps, nil)
 
 			result, err := handler(context.Background(), makeReq(map[string]any{
 				"prompt":          "do something",
@@ -134,7 +143,7 @@ func TestStartTask_WhenNoTimeoutProvided_UsesDefault(t *testing.T) {
 	t.Parallel()
 
 	tm, pm := newTestDeps()
-	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", nil)
+	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", testCaps, nil)
 
 	result, err := handler(context.Background(), makeReq(map[string]any{
 		"prompt": "do something",
@@ -153,7 +162,7 @@ func TestStartTask_WhenPromptTooLarge_RejectsWithError(t *testing.T) {
 	t.Parallel()
 
 	tm, pm := newTestDeps()
-	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 100, "claude-sonnet-4-5-20250929", nil) // max 100 bytes
+	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 100, "claude-sonnet-4-5-20250929", testCaps, nil) // max 100 bytes
 
 	result, err := handler(context.Background(), makeReq(map[string]any{
 		"prompt": string(make([]byte, 200)), // 200 bytes > 100 limit
@@ -169,7 +178,7 @@ func TestStartTask_WhenEstimatorHasHistory_IncludesEstimate(t *testing.T) {
 
 	tm, pm := newTestDeps()
 	est := &mockEstimator{avgDuration: 3 * time.Minute, count: 12}
-	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", est)
+	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", testCaps, est)
 
 	result, err := handler(context.Background(), makeReq(map[string]any{
 		"prompt": "do something",
@@ -187,7 +196,7 @@ func TestStartTask_WhenEstimatorNoHistory_ShowsUnknown(t *testing.T) {
 
 	tm, pm := newTestDeps()
 	est := &mockEstimator{avgDuration: 0, count: 0}
-	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", est)
+	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", testCaps, est)
 
 	result, err := handler(context.Background(), makeReq(map[string]any{
 		"prompt": "do something",
@@ -202,7 +211,7 @@ func TestStartTask_WhenNilEstimator_SkipsEstimate(t *testing.T) {
 	t.Parallel()
 
 	tm, pm := newTestDeps()
-	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", nil)
+	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", testCaps, nil)
 
 	result, err := handler(context.Background(), makeReq(map[string]any{
 		"prompt": "do something",
@@ -218,7 +227,7 @@ func TestStartTask_WhenExplicitModel_UsesIt(t *testing.T) {
 	t.Parallel()
 
 	tm, pm := newTestDeps()
-	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", nil)
+	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", testCaps, nil)
 
 	result, err := handler(context.Background(), makeReq(map[string]any{
 		"prompt": "do something",
@@ -239,7 +248,7 @@ func TestStartTask_WhenNoModel_UsesConfigDefault(t *testing.T) {
 	t.Parallel()
 
 	tm, pm := newTestDeps()
-	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", nil)
+	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", testCaps, nil)
 
 	result, err := handler(context.Background(), makeReq(map[string]any{
 		"prompt": "do something",

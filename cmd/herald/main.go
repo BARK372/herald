@@ -302,11 +302,12 @@ func run(ctx context.Context, cfg *config.Config) error {
 
 	// --- MCP Server ---
 	mcpServer := heraldmcp.NewServer(&heraldmcp.Deps{
-		Projects:  pm,
-		Tasks:     tm,
-		Store:     db,
-		Execution: cfg.Execution,
-		Version:   version,
+		Projects:     pm,
+		Tasks:        tm,
+		Store:        db,
+		Execution:    cfg.Execution,
+		Capabilities: exec.Capabilities(),
+		Version:      version,
 	})
 
 	// --- Push Notifications ---

@@ -21,12 +21,13 @@ type DurationEstimator interface {
 	GetAverageTaskDuration(project string) (time.Duration, int, error)
 }
 
-// StartTask returns a handler that creates and starts a Claude Code task.
+// StartTask returns a handler that creates and starts a task.
 // defaultTimeout and maxTimeout are expressed as time.Duration.
 // maxPromptSize limits prompt length in bytes (0 = no limit).
 // defaultModel is used when no model is specified per task.
+// caps describes the active executor's feature set (used to emit warnings).
 // estimator may be nil to skip duration estimation.
-func StartTask(tm *task.Manager, pm *project.Manager, defaultTimeout, maxTimeout time.Duration, maxPromptSize int, defaultModel string, estimator DurationEstimator) server.ToolHandlerFunc {
+func StartTask(tm *task.Manager, pm *project.Manager, defaultTimeout, maxTimeout time.Duration, maxPromptSize int, defaultModel string, caps executor.Capabilities, estimator DurationEstimator) server.ToolHandlerFunc {
 	defaultMinutes := int(defaultTimeout.Minutes())
 	if defaultMinutes <= 0 {
 		defaultMinutes = 30
@@ -122,6 +123,18 @@ func StartTask(tm *task.Manager, pm *project.Manager, defaultTimeout, maxTimeout
 		}
 		if sessionID != "" {
 			fmt.Fprintf(&b, "- Resuming session: %s\n", sessionID)
+		}
+		fmt.Fprintf(&b, "- Executor: %s\n", caps.Name)
+
+		// Capability warnings
+		if model != defaultModel && !caps.SupportsModel {
+			fmt.Fprintf(&b, "\n⚠️ Model selection not supported by executor %q. Using default model.\n", caps.Name)
+		}
+		if sessionID != "" && !caps.SupportsSession {
+			fmt.Fprintf(&b, "\n⚠️ Session resumption not supported by executor %q. Starting a new session.\n", caps.Name)
+		}
+		if dryRun && !caps.SupportsDryRun {
+			fmt.Fprintf(&b, "\n⚠️ Dry run mode not supported by executor %q. Task will execute normally.\n", caps.Name)
 		}
 
 		// Duration estimation

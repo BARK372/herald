@@ -395,7 +395,7 @@ func TestStatusIcon_AllStatuses(t *testing.T) {
 func TestGetResult_WhenTaskNotFound_ReturnsError(t *testing.T) {
 	t.Parallel()
 	tm, _ := newTestDeps()
-	handler := GetResult(tm)
+	handler := GetResult(tm, "mock")
 
 	result, err := handler(context.Background(), makeReq(map[string]any{
 		"task_id": "herald-nonexist",
@@ -409,7 +409,7 @@ func TestGetResult_WhenTaskNotFound_ReturnsError(t *testing.T) {
 func TestGetResult_WhenTaskFailed_ShowsError(t *testing.T) {
 	t.Parallel()
 	tm, _ := newTestDeps()
-	handler := GetResult(tm)
+	handler := GetResult(tm, "mock")
 
 	tsk := tm.Create("test", "fix", "", task.PriorityNormal, 30)
 	tsk.SetStatus(task.StatusRunning)
@@ -429,7 +429,7 @@ func TestGetResult_WhenTaskFailed_ShowsError(t *testing.T) {
 func TestGetResult_WhenTaskCancelled_ShowsCancelled(t *testing.T) {
 	t.Parallel()
 	tm, _ := newTestDeps()
-	handler := GetResult(tm)
+	handler := GetResult(tm, "mock")
 
 	tsk := tm.Create("test", "work", "", task.PriorityNormal, 30)
 	tsk.SetStatus(task.StatusRunning)
@@ -447,7 +447,7 @@ func TestGetResult_WhenTaskCancelled_ShowsCancelled(t *testing.T) {
 func TestGetResult_WhenFormatFull_WithCostAndError_ShowsAll(t *testing.T) {
 	t.Parallel()
 	tm, _ := newTestDeps()
-	handler := GetResult(tm)
+	handler := GetResult(tm, "mock")
 
 	tsk := tm.Create("test", "fix", "", task.PriorityNormal, 30)
 	tsk.SetStatus(task.StatusRunning)
@@ -472,7 +472,7 @@ func TestGetResult_WhenFormatFull_WithCostAndError_ShowsAll(t *testing.T) {
 func TestGetResult_WhenTaskPending_InformsUserStillPending(t *testing.T) {
 	t.Parallel()
 	tm, _ := newTestDeps()
-	handler := GetResult(tm)
+	handler := GetResult(tm, "mock")
 
 	tsk := tm.Create("test", "work", "", task.PriorityNormal, 30)
 
@@ -488,7 +488,7 @@ func TestGetResult_WhenTaskPending_InformsUserStillPending(t *testing.T) {
 func TestGetResult_WhenCompletedWithSessionID_ShowsSessionID(t *testing.T) {
 	t.Parallel()
 	tm, _ := newTestDeps()
-	handler := GetResult(tm)
+	handler := GetResult(tm, "mock")
 
 	tsk := tm.Create("test", "fix", "", task.PriorityNormal, 30)
 	tsk.SetStatus(task.StatusRunning)
@@ -627,7 +627,7 @@ func TestGetLogs_WhenLimitProvided_RespectsIt(t *testing.T) {
 func TestCheckTask_WhenRunning_ShowsProgressAndCost(t *testing.T) {
 	t.Parallel()
 	tm, _ := newTestDeps()
-	handler := CheckTask(tm)
+	handler := CheckTask(tm, "mock")
 
 	tsk := tm.Create("test", "do work", "", task.PriorityNormal, 30)
 	tsk.SetStatus(task.StatusRunning)
@@ -648,7 +648,7 @@ func TestCheckTask_WhenRunning_ShowsProgressAndCost(t *testing.T) {
 func TestCheckTask_WhenFailed_ShowsError(t *testing.T) {
 	t.Parallel()
 	tm, _ := newTestDeps()
-	handler := CheckTask(tm)
+	handler := CheckTask(tm, "mock")
 
 	tsk := tm.Create("test", "do work", "", task.PriorityNormal, 30)
 	tsk.SetStatus(task.StatusRunning)
@@ -668,7 +668,7 @@ func TestCheckTask_WhenFailed_ShowsError(t *testing.T) {
 func TestCheckTask_WhenCancelled_ShowsCancelled(t *testing.T) {
 	t.Parallel()
 	tm, _ := newTestDeps()
-	handler := CheckTask(tm)
+	handler := CheckTask(tm, "mock")
 
 	tsk := tm.Create("test", "do work", "", task.PriorityNormal, 30)
 	tsk.SetStatus(task.StatusRunning)
@@ -708,7 +708,7 @@ func TestCancelTask_WhenAlreadyCompleted_ReturnsError(t *testing.T) {
 func TestStartTask_WhenMissingPrompt_ReturnsError(t *testing.T) {
 	t.Parallel()
 	tm, pm := newTestDeps()
-	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", nil)
+	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", testCaps, nil)
 
 	result, err := handler(context.Background(), makeReq(map[string]any{}))
 	require.NoError(t, err)
@@ -720,7 +720,7 @@ func TestStartTask_WhenMissingPrompt_ReturnsError(t *testing.T) {
 func TestStartTask_WhenDryRun_ShowsDryRunMode(t *testing.T) {
 	t.Parallel()
 	tm, pm := newTestDeps()
-	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", nil)
+	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", testCaps, nil)
 
 	result, err := handler(context.Background(), makeReq(map[string]any{
 		"prompt":  "plan the refactoring",
@@ -735,7 +735,7 @@ func TestStartTask_WhenDryRun_ShowsDryRunMode(t *testing.T) {
 func TestStartTask_WhenSessionID_ShowsResuming(t *testing.T) {
 	t.Parallel()
 	tm, pm := newTestDeps()
-	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", nil)
+	handler := StartTask(tm, pm, 30*time.Minute, 2*time.Hour, 102400, "claude-sonnet-4-5-20250929", testCaps, nil)
 
 	result, err := handler(context.Background(), makeReq(map[string]any{
 		"prompt":     "continue",

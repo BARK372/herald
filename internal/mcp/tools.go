@@ -53,7 +53,7 @@ func registerTools(s *server.MCPServer, deps *Deps) {
 				mcp.Description("Claude model to use for this task. Defaults to config value. Examples: claude-sonnet-4-5-20250929, claude-opus-4-6"),
 			),
 		),
-		handlers.StartTask(deps.Tasks, deps.Projects, deps.Execution.DefaultTimeout, deps.Execution.MaxTimeout, deps.Execution.MaxPromptSize, deps.Execution.Model, deps.Store),
+		handlers.StartTask(deps.Tasks, deps.Projects, deps.Execution.DefaultTimeout, deps.Execution.MaxTimeout, deps.Execution.MaxPromptSize, deps.Execution.Model, deps.Capabilities, deps.Store),
 	)
 
 	// check_task — Check task status
@@ -74,7 +74,7 @@ func registerTools(s *server.MCPServer, deps *Deps) {
 				mcp.Description("Number of output lines to include (default: 20)"),
 			),
 		),
-		handlers.CheckTask(deps.Tasks),
+		handlers.CheckTask(deps.Tasks, deps.Capabilities.Name),
 	)
 
 	// get_result — Get full task result
@@ -90,7 +90,7 @@ func registerTools(s *server.MCPServer, deps *Deps) {
 				mcp.Enum("summary", "full", "json"),
 			),
 		),
-		handlers.GetResult(deps.Tasks),
+		handlers.GetResult(deps.Tasks, deps.Capabilities.Name),
 	)
 
 	// list_tasks — List tasks

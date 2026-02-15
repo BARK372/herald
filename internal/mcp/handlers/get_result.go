@@ -13,7 +13,8 @@ import (
 )
 
 // GetResult returns a handler that provides the full result of a completed task.
-func GetResult(tm *task.Manager) server.ToolHandlerFunc {
+// executorName is included in summary/full responses.
+func GetResult(tm *task.Manager, executorName string) server.ToolHandlerFunc {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		args := req.GetArguments()
 
@@ -44,14 +45,14 @@ func GetResult(tm *task.Manager) server.ToolHandlerFunc {
 		case "json":
 			return formatJSON(snap)
 		case "full":
-			return formatFull(snap)
+			return formatFull(snap, executorName)
 		default:
-			return formatSummary(snap)
+			return formatSummary(snap, executorName)
 		}
 	}
 }
 
-func formatSummary(snap task.TaskSnapshot) (*mcp.CallToolResult, error) {
+func formatSummary(snap task.TaskSnapshot, executorName string) (*mcp.CallToolResult, error) {
 	var b strings.Builder
 
 	switch snap.Status {
@@ -68,6 +69,7 @@ func formatSummary(snap task.TaskSnapshot) (*mcp.CallToolResult, error) {
 		fmt.Fprintf(&b, "- Context: %s\n", snap.Context)
 	}
 	fmt.Fprintf(&b, "- Project: %s\n", snap.Project)
+	fmt.Fprintf(&b, "- Executor: %s\n", executorName)
 	if snap.Model != "" {
 		fmt.Fprintf(&b, "- Model: %s\n", snap.Model)
 	}
@@ -96,14 +98,14 @@ func formatSummary(snap task.TaskSnapshot) (*mcp.CallToolResult, error) {
 	return mcp.NewToolResultText(b.String()), nil
 }
 
-func formatFull(snap task.TaskSnapshot) (*mcp.CallToolResult, error) {
+func formatFull(snap task.TaskSnapshot, executorName string) (*mcp.CallToolResult, error) {
 	var b strings.Builder
 
 	fmt.Fprintf(&b, "Task %s — %s\n", snap.ID, snap.Status)
 	if snap.Context != "" {
 		fmt.Fprintf(&b, "Context: %s\n", snap.Context)
 	}
-	fmt.Fprintf(&b, "Project: %s | Duration: %s", snap.Project, snap.FormatDuration())
+	fmt.Fprintf(&b, "Project: %s | Executor: %s | Duration: %s", snap.Project, executorName, snap.FormatDuration())
 	if snap.CostUSD > 0 {
 		fmt.Fprintf(&b, " | Cost: $%.2f", snap.CostUSD)
 	}

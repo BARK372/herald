@@ -159,7 +159,7 @@ func TestCheckTask_WhenLinkedTask_ShowsLinkedInfo(t *testing.T) {
 	require.Len(t, tasks, 1)
 
 	// Check the linked task
-	checkHandler := CheckTask(tm)
+	checkHandler := CheckTask(tm, "mock")
 	result, err := checkHandler(context.Background(), makeReq(map[string]any{
 		"task_id": tasks[0].ID,
 	}))

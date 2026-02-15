@@ -4,6 +4,7 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 
 	"github.com/btouchard/herald/internal/config"
+	"github.com/btouchard/herald/internal/executor"
 	"github.com/btouchard/herald/internal/mcp/handlers"
 	"github.com/btouchard/herald/internal/project"
 	"github.com/btouchard/herald/internal/task"
@@ -11,11 +12,12 @@ import (
 
 // Deps holds shared dependencies injected into MCP handlers.
 type Deps struct {
-	Projects  *project.Manager
-	Tasks     *task.Manager
-	Store     handlers.DurationEstimator
-	Execution config.ExecutionConfig
-	Version   string
+	Projects     *project.Manager
+	Tasks        *task.Manager
+	Store        handlers.DurationEstimator
+	Execution    config.ExecutionConfig
+	Capabilities executor.Capabilities
+	Version      string
 }
 
 // NewServer creates and configures the MCP server with all tools registered.

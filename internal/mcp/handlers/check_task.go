@@ -18,9 +18,10 @@ const (
 )
 
 // CheckTask returns a handler that reports a task's current status.
+// executorName is displayed in responses so the user knows which backend ran the task.
 // When wait_seconds > 0 and the task is still running, it long-polls
 // until the status changes or the timeout expires.
-func CheckTask(tm *task.Manager) server.ToolHandlerFunc {
+func CheckTask(tm *task.Manager, executorName string) server.ToolHandlerFunc {
 	return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		args := req.GetArguments()
 
@@ -55,7 +56,7 @@ func CheckTask(tm *task.Manager) server.ToolHandlerFunc {
 			outputLines = int(n)
 		}
 
-		text := formatCheckResponse(snap, includeOutput, outputLines)
+		text := formatCheckResponse(snap, includeOutput, outputLines, executorName)
 		return mcp.NewToolResultText(text), nil
 	}
 }
@@ -90,7 +91,7 @@ func isTerminalStatus(s task.Status) bool {
 	return s == task.StatusCompleted || s == task.StatusFailed || s == task.StatusCancelled || s == task.StatusLinked
 }
 
-func formatCheckResponse(snap task.TaskSnapshot, includeOutput bool, outputLines int) string {
+func formatCheckResponse(snap task.TaskSnapshot, includeOutput bool, outputLines int, executorName string) string {
 	var b strings.Builder
 
 	if snap.Context != "" {
@@ -115,6 +116,7 @@ func formatCheckResponse(snap task.TaskSnapshot, includeOutput bool, outputLines
 	case task.StatusCompleted:
 		fmt.Fprintf(&b, "Status: completed\n")
 		fmt.Fprintf(&b, "Duration: %s\n", snap.FormatDuration())
+		fmt.Fprintf(&b, "Executor: %s\n", executorName)
 		if snap.Model != "" {
 			fmt.Fprintf(&b, "Model: %s\n", snap.Model)
 		}
