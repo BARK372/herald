@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Pluggable executor architecture with registry pattern (`executor.Register`, `executor.Get`, `executor.Available`)
+- `Capabilities` struct for executor feature introspection (session resumption, model selection, tool restrictions, dry-run, streaming)
+- Claude Code executor moved to `internal/executor/claude` sub-package with `init()` auto-registration
+- `execution.executor` config field to select the active executor backend (default: `"claude-code"`)
+- MCP handler capability warnings when a requested feature is unsupported by the active executor
+- Executor name shown in `check_task` and `get_result` responses
+- Custom executor development guide (`docs/guide/custom-executor.md`)
+
 ### Roadmap
 
 - Model templates per task type (e.g. review→opus, test→sonnet, fix→sonnet) with config-driven defaults
